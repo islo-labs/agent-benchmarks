@@ -248,6 +248,15 @@
       border-radius: 10px;
       overflow: hidden;
       min-width: 560px;
+      position: relative;
+    }
+    .matrix::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle 280px at var(--spot-x, -9999px) var(--spot-y, -9999px), rgba(124,58,237,0.07), transparent 70%);
+      pointer-events: none;
+      z-index: 10;
     }
 
     .matrix > * { background: var(--white); }
@@ -445,7 +454,7 @@
 <div class="hero">
   <div class="hero-inner">
     <div class="eyebrow">Agent Benchmark Landscape · 2026</div>
-    <h1>Every agent benchmark<br>worth <i>knowing</i></h1>
+    <h1>The agent benchmark<br><i>landscape.</i></h1>
     <p class="hero-sub">A curated map of agentic evaluation benchmarks — coding, math, research, science, and more.</p>
     <div class="stats">
       <div class="stat-item">
@@ -747,6 +756,22 @@ countUp(document.getElementById('agentic-count'), BENCHMARKS.filter(b => b.type 
 countUp(document.getElementById('unsat-count'),   BENCHMARKS.filter(b => b.sat === 'low').length, 600);
 
 render();
+
+// Spotlight
+(function () {
+  const wrap = document.getElementById('landscape');
+  function m() { return wrap.querySelector('.matrix'); }
+  wrap.addEventListener('mousemove', e => {
+    const el = m(); if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--spot-x', (e.clientX - r.left) + 'px');
+    el.style.setProperty('--spot-y', (e.clientY - r.top) + 'px');
+  });
+  wrap.addEventListener('mouseleave', () => {
+    const el = m();
+    if (el) { el.style.setProperty('--spot-x', '-9999px'); el.style.setProperty('--spot-y', '-9999px'); }
+  });
+})();
 </script>
 </body>
 </html>
