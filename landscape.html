@@ -59,7 +59,7 @@
 
     /* ── hero ── */
     .hero {
-      padding: 80px 32px 64px;
+      padding: 80px 32px 72px;
       border-bottom: 1px solid var(--border);
     }
     .hero-inner { max-width: var(--max); margin: 0 auto; }
@@ -89,16 +89,22 @@
       color: var(--muted);
       line-height: 1.65;
       max-width: 440px;
-      margin-bottom: 40px;
+      margin-bottom: 44px;
     }
 
     .stats {
       display: flex;
-      gap: 40px;
+      gap: 0;
     }
+    .stat-item {
+      padding-right: 36px;
+      margin-right: 36px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; padding-right: 0; margin-right: 0; }
     .stat-num {
-      font-size: 28px;
-      font-weight: 800;
+      font-size: 26px;
+      font-weight: 700;
       letter-spacing: -.04em;
       color: var(--text);
       display: block;
@@ -111,7 +117,7 @@
       color: var(--faint);
       display: block;
       margin-top: 5px;
-      letter-spacing: .04em;
+      letter-spacing: .05em;
       text-transform: uppercase;
     }
 
@@ -123,26 +129,39 @@
       top: 48px;
       z-index: 50;
     }
-    .filter-inner {
+    .filter-rows {
       max-width: var(--max);
       margin: 0 auto;
       padding: 0 32px;
       display: flex;
+      flex-direction: column;
+    }
+    .filter-row {
+      display: flex;
       align-items: center;
       gap: 2px;
-      overflow-x: auto;
-      scrollbar-width: none;
       height: 44px;
     }
-    .filter-inner::-webkit-scrollbar { display: none; }
+    .filter-row + .filter-row {
+      border-top: 1px solid var(--border);
+    }
+    .filter-row-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      white-space: nowrap;
+      width: 72px;
+      flex-shrink: 0;
+    }
 
-    .fsep { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; margin: 0 5px; }
+    .fsep { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; margin: 0 4px; }
 
     .ftag {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
+      padding: 5px 10px;
       border-radius: 5px;
       border: 1px solid transparent;
       background: transparent;
@@ -152,13 +171,13 @@
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: all .12s;
+      transition: color .12s, background .12s;
+      font-family: inherit;
     }
-    .ftag:hover { background: var(--bg); border-color: var(--border); color: var(--text); }
-    .ftag.active { background: var(--p50); border-color: var(--p200); color: var(--purple); font-weight: 600; }
+    .ftag:hover { color: var(--text); background: var(--bg); }
+    .ftag.active { color: var(--text); font-weight: 600; background: var(--bg); border-color: var(--border); }
 
     .search-box {
-      margin-left: auto;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -172,8 +191,39 @@
     #search {
       font-size: 12px; color: var(--text);
       background: transparent; border: none; outline: none; width: 130px;
+      padding: 4px 0;
     }
     #search::placeholder { color: var(--faint); }
+
+    /* ── saturation legend ── */
+    .sat-legend {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .sat-legend-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 9px 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sat-legend-label {
+      font-size: 11px;
+      color: var(--faint);
+      font-weight: 500;
+      margin-right: 4px;
+    }
+    .sat-legend-item {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .sat-legend-item.sat-low      { color: #16a34a; }
+    .sat-legend-item.sat-somewhat { color: #ca8a04; }
+    .sat-legend-item.sat-almost   { color: #ea580c; }
+    .sat-legend-item.sat-full     { color: #dc2626; }
+    .sat-legend-sep { color: var(--border); font-size: 11px; }
 
     /* ── landscape ── */
     .landscape-wrap {
@@ -278,6 +328,65 @@
     .card-sat.sat-almost { color: #ea580c; }
     .card-sat.sat-somewhat { color: #ca8a04; }
 
+    /* ── submit CTA ── */
+    .submit-cta {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 32px 80px;
+    }
+    .submit-cta-inner {
+      border-top: 1px solid var(--border);
+      padding-top: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .submit-cta-text {}
+    .submit-cta-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 10px;
+    }
+    .submit-cta-heading {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 26px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .submit-cta-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 380px;
+    }
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: 1px solid var(--p200);
+      border-radius: 100px;
+      background: var(--p50);
+      color: var(--purple);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background .15s, box-shadow .15s;
+    }
+    .submit-btn:hover {
+      background: var(--p100);
+      box-shadow: 0 2px 12px rgba(124,58,237,.12);
+    }
+
     /* ── empty / footer ── */
     .empty { padding: 80px 0; text-align: center; font-size: 14px; color: var(--faint); }
 
@@ -293,10 +402,46 @@
     .footer-r a:hover { text-decoration: underline; }
 
     @media (max-width: 760px) {
-      h1 { font-size: 32px; }
-      .stats { gap: 24px; }
-      .cards { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+      h1 { font-size: 30px; }
+
+      .nav-inner { padding: 0 20px; }
+
+      .hero { padding: 48px 20px 44px; }
+      .hero-sub { font-size: 14px; margin-bottom: 32px; }
+
+      /* stats: 2×2 grid */
+      .stats { flex-wrap: wrap; }
+      .stat-item {
+        width: 50%;
+        padding-right: 0; margin-right: 0;
+        border-right: none;
+        padding-bottom: 16px; margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .stat-item:nth-child(n+3) { padding-bottom: 0; margin-bottom: 0; border-bottom: none; padding-top: 16px; }
+      .stat-item:nth-child(odd) { padding-right: 20px; border-right: 1px solid var(--border); }
+
+      /* filter: scrollable rows, hide labels */
+      .filter-rows { padding: 0 16px; }
+      .filter-row { overflow-x: auto; scrollbar-width: none; height: 42px; }
+      .filter-row::-webkit-scrollbar { display: none; }
+      .filter-row-lbl { display: none; }
+
+      /* sat legend */
+      .sat-legend-inner { padding: 8px 16px; }
+
+      /* cards: 2-column */
+      .landscape-wrap { padding: 28px 16px 48px; }
+      .cards { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
+      .card { padding: 14px 14px 12px; }
       .card-name { font-size: 16px; }
+      .cat-section { margin-bottom: 36px; }
+
+      /* submit CTA */
+      .submit-cta { padding: 0 16px 48px; }
+      .submit-cta-inner { flex-direction: column; align-items: flex-start; gap: 24px; }
+
+      .footer-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
     }
   </style>
 </head>
@@ -304,7 +449,6 @@
 
 <nav>
   <div class="nav-inner">
-    <span class="nav-brand">islo.dev</span>
     <a class="nav-link" href="index.html">← The Story</a>
   </div>
 </nav>
@@ -315,19 +459,19 @@
     <h1>Every agent benchmark<br>worth <i>knowing</i></h1>
     <p class="hero-sub">A curated map of agentic evaluation benchmarks — coding, math, research, science, and more.</p>
     <div class="stats">
-      <div>
+      <div class="stat-item">
         <span class="stat-num" id="total-count">0</span>
         <span class="stat-lbl">Benchmarks</span>
       </div>
-      <div>
+      <div class="stat-item">
         <span class="stat-num" id="agentic-count">0</span>
         <span class="stat-lbl">Agentic</span>
       </div>
-      <div>
+      <div class="stat-item">
         <span class="stat-num" id="unsat-count">0</span>
         <span class="stat-lbl">Unsolved</span>
       </div>
-      <div>
+      <div class="stat-item">
         <span class="stat-num">7</span>
         <span class="stat-lbl">Domains</span>
       </div>
@@ -336,43 +480,76 @@
 </div>
 
 <div class="filter-bar">
-  <div class="filter-inner">
-    <button class="ftag active" data-cat="all">All</button>
-    <button class="ftag" data-cat="coding">Coding</button>
-    <button class="ftag" data-cat="math">Math</button>
-    <button class="ftag" data-cat="agents">Agents</button>
-    <button class="ftag" data-cat="research">Research</button>
-    <button class="ftag" data-cat="science">Science</button>
-    <button class="ftag" data-cat="specialized">Specialized</button>
-    <button class="ftag" data-cat="multilingual">Multilingual</button>
-    <div class="fsep"></div>
-    <button class="ftag active" data-type="all">All types</button>
-    <button class="ftag" data-type="agentic">Agentic</button>
-    <button class="ftag" data-type="non-agentic">Non-agentic</button>
-    <button class="ftag" data-type="modified">Modified</button>
-    <div class="fsep"></div>
-    <button class="ftag active" data-sat="all">Any saturation</button>
-    <button class="ftag" data-sat="low">Frontier</button>
-    <button class="ftag" data-sat="somewhat">20–50%</button>
-    <button class="ftag" data-sat="almost">50–80%</button>
-    <button class="ftag" data-sat="full">Solved</button>
-    <div class="search-box">
-      <svg width="12" height="12" viewBox="0 0 15 15" fill="none">
-        <path d="M10 6.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0zm-.816 3.89 2.563 2.563a.75.75 0 1 1-1.06 1.06L8.124 10.45A5 5 0 1 1 9.184 10.39z" fill="currentColor"/>
-      </svg>
-      <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+  <div class="filter-rows">
+    <div class="filter-row">
+      <span class="filter-row-lbl">Domain</span>
+      <button class="ftag active" data-cat="all">All</button>
+      <button class="ftag" data-cat="coding">Coding</button>
+      <button class="ftag" data-cat="math">Math</button>
+      <button class="ftag" data-cat="agents">Agents</button>
+      <button class="ftag" data-cat="research">Research</button>
+      <button class="ftag" data-cat="science">Science</button>
+      <button class="ftag" data-cat="specialized">Specialized</button>
+      <button class="ftag" data-cat="multilingual">Multilingual</button>
+      <div class="search-box" style="margin-left:auto">
+        <svg width="12" height="12" viewBox="0 0 15 15" fill="none">
+          <path d="M10 6.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0zm-.816 3.89 2.563 2.563a.75.75 0 1 1-1.06 1.06L8.124 10.45A5 5 0 1 1 9.184 10.39z" fill="currentColor"/>
+        </svg>
+        <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+      </div>
     </div>
+    <div class="filter-row">
+      <span class="filter-row-lbl">Type</span>
+      <button class="ftag active" data-type="all">All</button>
+      <button class="ftag" data-type="agentic">Agentic</button>
+      <button class="ftag" data-type="non-agentic">Non-agentic</button>
+      <button class="ftag" data-type="modified">Modified</button>
+      <div class="fsep"></div>
+      <span class="filter-row-lbl" style="width:auto;margin: 0 4px 0 2px">Saturation</span>
+      <button class="ftag active" data-sat="all">All</button>
+      <button class="ftag" data-sat="low">Frontier &lt;20%</button>
+      <button class="ftag" data-sat="somewhat">20–50%</button>
+      <button class="ftag" data-sat="almost">50–80%</button>
+      <button class="ftag" data-sat="full">Solved &gt;80%</button>
+    </div>
+  </div>
+</div>
+
+<div class="sat-legend">
+  <div class="sat-legend-inner">
+    <span class="sat-legend-label">Saturation — % of tasks solved by frontier models:</span>
+    <span class="sat-legend-item sat-low">Frontier &lt;20%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item sat-somewhat">20–50%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item sat-almost">50–80%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item sat-full">Solved &gt;80%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item" style="color:var(--faint)">— Unknown</span>
   </div>
 </div>
 
 <div class="landscape-wrap" id="landscape"></div>
 
+<div class="submit-cta">
+  <div class="submit-cta-inner">
+    <div class="submit-cta-text">
+      <div class="submit-cta-eyebrow">Missing a benchmark?</div>
+      <div class="submit-cta-heading">Get your work in front<br>of the community</div>
+      <p class="submit-cta-sub">We review submissions for quality and relevance. Open a GitHub issue with a link to your benchmark and we'll take a look.</p>
+    </div>
+    <a class="submit-btn" href="https://github.com/islo-labs/hackbench/issues/new" target="_blank" rel="noopener">
+      Submit a benchmark →
+    </a>
+  </div>
+</div>
+
 <footer>
   <div class="footer-inner">
-    <span class="footer-l">islo.dev · Agent benchmarks 2026</span>
+    <span class="footer-l">Agent benchmarks 2026</span>
     <span class="footer-r">
       <a href="https://docs.google.com/spreadsheets/d/1mJbiASPm32DDNzEnV6eDGwpEf3FlMUe5dhkZmFjjSoo" target="_blank" rel="noopener">Harbor Tracker</a>
-      · <a href="https://islo.dev" target="_blank" rel="noopener">islo.dev</a>
     </span>
   </div>
 </footer>
@@ -414,6 +591,8 @@ const BENCHMARKS = [
   { name:"SWE-Bench Mobile",          cat:"coding",       sat:"low",      type:"agentic",     tags:"swe ios mobile",               link:"https://arxiv.org/abs/2602.09540" },
   { name:"ACE-Bench",                 cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe feature development",      link:"https://openreview.net/pdf?id=41xrZ3uGuI" },
   { name:"LiveCodeBench",             cat:"coding",       sat:"full",     type:"non-agentic", tags:"coding contest live",          link:"https://github.com/LiveCodeBench/LiveCodeBench" },
+  { name:"LiveBench",                 cat:"coding",       sat:"almost",   type:"non-agentic", tags:"coding math reasoning contamination-resistant", link:"https://livebench.ai" },
+  { name:"MLE-bench",                 cat:"coding",       sat:"low",      type:"agentic",     tags:"kaggle ml engineering competitions",  link:"https://github.com/openai/mle-bench" },
   { name:"LiveCodeBench Pro",         cat:"coding",       sat:"almost",   type:"modified",    tags:"competitive programming",      link:"https://livecodebenchpro.com" },
   { name:"Aider Polyglot",            cat:"coding",       sat:"full",     type:"non-agentic", tags:"repo multilingual",            link:"https://github.com/Aider-AI/aider/tree/main/benchmark" },
   { name:"BigCodeBench",              cat:"coding",       sat:"almost",   type:"modified",    tags:"code generation",              link:"https://github.com/bigcode-project/bigcodebench" },
@@ -432,6 +611,7 @@ const BENCHMARKS = [
   { name:"CL-Bench",                  cat:"math",         sat:"somewhat", type:"non-agentic", tags:"long context reasoning",       link:"https://arxiv.org/abs/2602.03587" },
   { name:"Reasoning Gym",             cat:"math",         sat:"somewhat", type:"non-agentic", tags:"logic math curriculum",        link:"https://github.com/open-thought/reasoning-gym" },
   { name:"SimpleQA",                  cat:"math",         sat:"almost",   type:"non-agentic", tags:"factuality hallucination",     link:"https://github.com/openai/simple-evals" },
+  { name:"Humanity's Last Exam",      cat:"math",         sat:"somewhat", type:"non-agentic", tags:"expert questions science humanities math", link:"https://agi.safe.ai" },
   { name:"GAIA",                      cat:"agents",       sat:"full",     type:"agentic",     tags:"general assistant tools",      link:"https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/gaia" },
   { name:"GAIA2",                     cat:"agents",       sat:"somewhat", type:"agentic",     tags:"async agents dynamic",         link:"https://arxiv.org/abs/2602.11964" },
   { name:"Tau-Bench",                 cat:"agents",       sat:"almost",   type:"agentic",     tags:"tool use api services",        link:"https://github.com/sierra-research/tau-bench" },
@@ -443,11 +623,15 @@ const BENCHMARKS = [
   { name:"SpreadsheetBench",          cat:"agents",       sat:"almost",   type:"agentic",     tags:"spreadsheets excel",           link:"https://spreadsheetbench.github.io" },
   { name:"MCPMark",                   cat:"agents",       sat:"almost",   type:"agentic",     tags:"mcp tool workflows",           link:"https://arxiv.org/pdf/2509.24002" },
   { name:"Vending-Bench",             cat:"agents",       sat:"hard",     type:"non-agentic", tags:"long-horizon interaction",     link:"https://andonlabs.com/evals/vending-bench" },
+  { name:"TerminalBench",             cat:"agents",       sat:"full",     type:"agentic",     tags:"terminal cli sysadmin devops",  link:"https://www.tbench.ai" },
+  { name:"AppWorld",                  cat:"agents",       sat:"somewhat", type:"agentic",     tags:"multi-app api daily tasks",    link:"https://appworld.dev" },
   { name:"WideSearch",                cat:"research",     sat:"almost",   type:"agentic",     tags:"deep research information",    link:"https://arxiv.org/pdf/2508.07999" },
   { name:"Seal-0",                    cat:"research",     sat:"somewhat", type:"agentic",     tags:"search noisy facts",           link:"https://llm-stats.com/benchmarks/seal-0" },
   { name:"BrowseComp-Plus",           cat:"research",     sat:"almost",   type:"agentic",     tags:"web research retrieval",       link:"https://github.com/texttron/BrowseComp-Plus" },
   { name:"FutureX",                   cat:"research",     sat:"somewhat", type:"agentic",     tags:"future prediction live",       link:"https://arxiv.org/abs/2508.11987" },
   { name:"DeepSynth",                 cat:"research",     sat:"low",      type:"agentic",     tags:"search synthesis",             link:"https://openreview.net/pdf?id=0Dhpt9aY3n" },
+  { name:"AssistantBench",            cat:"research",     sat:"low",      type:"agentic",     tags:"web research browsing tasks",  link:"https://assistantbench.github.io" },
+  { name:"RE-Bench",                  cat:"research",     sat:"hard",     type:"agentic",     tags:"ml research engineering metr", link:"https://metr.org/blog/2024-11-22-evaluating-r-d-capabilities-of-llms" },
   { name:"GPQA Diamond",              cat:"science",      sat:"full",     type:"non-agentic", tags:"science graduate expert",      link:"https://epoch.ai/benchmarks/gpqa-diamond" },
   { name:"CritPt",                    cat:"science",      sat:"low",      type:"modified",    tags:"physics research hard",        link:"https://critpt.com" },
   { name:"LAB-Bench",                 cat:"science",      sat:"somewhat", type:"non-agentic", tags:"biology scientific",           link:"https://github.com/Future-House/LAB-Bench" },
@@ -456,8 +640,10 @@ const BENCHMARKS = [
   { name:"MLGym-Bench",               cat:"science",      sat:"full",     type:"modified",    tags:"ml research gym",              link:"https://github.com/facebookresearch/MLGym" },
   { name:"ASTA-Bench",                cat:"science",      sat:"almost",   type:"modified",    tags:"research agents tools",        link:"https://github.com/allenai/asta-bench" },
   { name:"InnovatorBench",            cat:"science",      sat:"somewhat", type:"agentic",     tags:"ai research long-horizon",     link:"https://arxiv.org/pdf/2510.27598" },
+  { name:"SciCode",                   cat:"science",      sat:"low",      type:"non-agentic", tags:"scientific coding physics chemistry biology", link:"https://scicode-bench.github.io" },
   { name:"CVE-Bench",                 cat:"specialized",  sat:"somewhat", type:"agentic",     tags:"security cve exploits",        link:"https://github.com/uiuc-kang-lab/cve-bench" },
   { name:"CyberGym",                  cat:"specialized",  sat:"somewhat", type:"agentic",     tags:"cybersecurity",                link:"https://cybergym.io" },
+  { name:"Cybench",                   cat:"specialized",  sat:"low",      type:"agentic",     tags:"ctf capture the flag security", link:"https://cybench.github.io" },
   { name:"FinanceAgent",              cat:"specialized",  sat:"almost",   type:"agentic",     tags:"finance sec analyst",          link:"https://vals.ai/benchmarks/finance_agent" },
   { name:"LawBench",                  cat:"specialized",  sat:"almost",   type:"non-agentic", tags:"law legal reasoning",          link:"https://github.com/open-compass/LawBench" },
   { name:"MedAgentBench",             cat:"specialized",  sat:"almost",   type:"agentic",     tags:"healthcare medical",           link:"https://arxiv.org/pdf/2501.14654" },

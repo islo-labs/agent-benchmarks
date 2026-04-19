@@ -357,9 +357,26 @@
     .reveal { opacity: 0; transform: translateY(28px); }
 
     @media (max-width: 760px) {
-      h1 { font-size: 32px; }
-      .chapter-inner { grid-template-columns: 1fr; gap: 40px; }
+      h1 { font-size: 30px; }
+
+      .nav-inner { padding: 0 20px; }
+
+      .hero { padding: 56px 20px 56px; }
+      .hero-sub { font-size: 15px; }
+
+      .chapter { padding: 60px 20px; }
+      .chapter-inner { grid-template-columns: 1fr; gap: 36px; }
       .chapter.flip .chapter-inner { direction: ltr; }
+
+      .statement { padding: 60px 20px 48px; }
+      .statement-sub { font-size: 14px; }
+      .split-vis { grid-template-columns: 1fr; gap: 14px; }
+      .split-closing { font-size: 15px; }
+
+      .further { padding: 56px 20px; }
+      .fr-grid { grid-template-columns: 1fr; gap: 12px; }
+
+      .footer-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
     }
   </style>
 </head>
@@ -367,8 +384,7 @@
 
 <nav>
   <div class="nav-inner">
-    <span class="nav-brand">islo.dev</span>
-    <a class="nav-link" href="https://islo.dev" target="_blank" rel="noopener">← islo.dev</a>
+    <a class="nav-link" href="landscape.html">All benchmarks →</a>
   </div>
 </nav>
 
@@ -518,10 +534,7 @@
 
 <footer>
   <div class="footer-inner">
-    <span class="footer-l">islo.dev · Agent benchmarks 2026</span>
-    <span class="footer-r">
-      <a href="https://islo.dev" target="_blank" rel="noopener">islo.dev</a>
-    </span>
+    <span class="footer-l">Agent benchmarks 2026</span>
   </div>
 </footer>
 
