@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agent Benchmarks — The Story · islo.dev</title>
+  <title>Agent Benchmarks — The Story</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -394,9 +394,9 @@
   <canvas id="hero-canvas"></canvas>
   <div class="hero-inner">
     <div class="eyebrow">Agent Benchmarks · 2026</div>
-    <h1>Before the benchmarks,<br>there's a <i>story</i></h1>
-    <p class="hero-sub">To understand why agent benchmarks matter — and why they break — you need to understand how AI learns.</p>
-    <a class="start-btn" href="#ch-rl">
+    <h1>Every AI breakthrough starts<br>with a <i>benchmark</i></h1>
+    <p class="hero-sub">Standardized tests that shape billions in research, define what "better" means, and decide which models lead the field — and what happens when they break.</p>
+    <a class="start-btn" href="#ch-bench">
       Start
       <svg class="scroll-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none">
         <path d="M8 3v10M4 9.5l4 3.5 4-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -405,34 +405,16 @@
   </div>
 </section>
 
-<!-- ── Chapter 1: RL ── -->
-<section class="chapter" id="ch-rl">
+<!-- ── Chapter 1: Benchmarks ── -->
+<section class="chapter flip" id="ch-bench">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">01 · Reinforcement Learning</div>
-      <h2>An agent, an environment,<br>a <i>reward</i>.</h2>
-      <div class="chapter-body">
-        <p>Reinforcement learning is the engine behind modern AI agents. An agent observes its environment, takes an action, and receives a reward signal back. Over millions of iterations, it learns which actions lead to higher rewards.</p>
-        <p>This loop — observe, act, reward — is surprisingly powerful. It's how agents learned to play chess, write code, and browse the web.</p>
-      </div>
-    </div>
-    <div class="vis reveal">
-      <canvas id="rl-canvas" width="520" height="300"></canvas>
-      <span class="vis-label">RL loop</span>
-    </div>
-  </div>
-</section>
-
-<!-- ── Chapter 2: Benchmarks ── -->
-<section class="chapter flip">
-  <div class="chapter-inner">
-    <div class="reveal">
-      <div class="chapter-num">02 · Benchmarks</div>
-      <h2>How do we know if it's<br><i>actually</i> improving?</h2>
+      <div class="chapter-num">01 · Benchmarks</div>
+      <h2>The test that defines<br>what <i>better</i> means.</h2>
       <div class="chapter-body">
         <p>A benchmark is a standardized test — a fixed set of tasks with measurable outcomes. Feed the same tasks to every model, compare the scores, and you have an objective way to track progress.</p>
-        <p>Take <strong>SWE-bench</strong>: it hands an AI a real GitHub issue and asks it to fix the code. There's no grading on vibes — either the automated test suite passes, or it doesn't. That binary outcome, repeated across hundreds of tasks, becomes a score you can trust and compare.</p>
-        <p>Benchmarks drive research. Labs optimize for them. They're how the field decides what "better" means.</p>
+        <p>Take <strong>SWE-bench</strong>: it hands an AI a real GitHub issue and asks it to fix the code. There's no grading on vibes — either the automated test suite passes, or it doesn't. That binary outcome, repeated across hundreds of tasks, becomes a score that moves markets, directs research budgets, and shapes what the next generation of models will optimize for.</p>
+        <p>Labs race to top them. Papers are written about them. They are the industry's north star.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -446,7 +428,7 @@
 <section class="chapter">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">03 · Reward Hacking</div>
+      <div class="chapter-num">02 · Reward Hacking</div>
       <h2>The agent found<br>a <i>loophole</i>.</h2>
       <div class="chapter-body">
         <p>When the reward signal doesn't perfectly capture what we want, agents learn to exploit the gap. They find paths that score well on the metric without actually doing the task.</p>
@@ -464,7 +446,7 @@
 
 <!-- ── Chapter 4: Infrastructure (statement) ── -->
 <section class="statement" id="ch-infra">
-  <div class="statement-eyebrow reveal">04 · The Root Cause</div>
+  <div class="statement-eyebrow reveal">03 · The Root Cause</div>
   <h2 class="reveal">The benchmark is only as honest<br>as the <i>environment</i> it runs in.</h2>
   <p class="statement-sub reveal">Agents don't cheat because they're broken. They cheat because nothing stops them. Writing better tasks is an arms race you will lose.</p>
 
@@ -522,7 +504,7 @@
 <section class="cta">
   <div class="cta-inner reveal">
     <h2>Now explore the landscape.</h2>
-    <p>61 benchmarks across 7 domains — with reward hacking emerging at the frontier.</p>
+    <p>70 benchmarks across 7 domains — with reward hacking emerging at the frontier.</p>
     <a class="cta-btn" href="landscape.html">
       View all benchmarks
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -662,110 +644,6 @@ function rrect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
 }
-
-// ─── 1. RL Loop ──────────────────────────────────────────────────────────────
-(function () {
-  const { ctx, W, H } = setupCanvas('rl-canvas');
-
-  const AX = W * 0.22, AY = H * 0.5;
-  const EX = W * 0.78, EY = H * 0.5;
-  const NW = 98, NH = 40;
-
-  const topP = [
-    { x: AX + NW/2,                          y: AY - NH/2 },
-    { x: AX + NW/2 + (EX-AX)*0.28,           y: H * 0.13  },
-    { x: AX + NW/2 + (EX-AX)*0.72,           y: H * 0.13  },
-    { x: EX - (NW+20)/2,                     y: EY - NH/2 }
-  ];
-  const botP = [
-    { x: EX - (NW+20)/2,                     y: EY + NH/2 },
-    { x: AX + NW/2 + (EX-AX)*0.72,           y: H * 0.87  },
-    { x: AX + NW/2 + (EX-AX)*0.28,           y: H * 0.87  },
-    { x: AX + NW/2,                          y: AY + NH/2 }
-  ];
-
-  const N = 5;
-  const particles = [];
-  for (let i = 0; i < N; i++) {
-    particles.push({ path: topP, t: i/N, speed: 0.0045, color: '#7c3aed' });
-    particles.push({ path: botP, t: i/N, speed: 0.0045, color: '#0891b2' });
-  }
-
-  function drawCurve(path, color, label, above) {
-    ctx.beginPath();
-    ctx.moveTo(path[0].x, path[0].y);
-    ctx.bezierCurveTo(path[1].x, path[1].y, path[2].x, path[2].y, path[3].x, path[3].y);
-    ctx.strokeStyle = color + '35';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 5]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    const p0 = bezierPt(path[0], path[1], path[2], path[3], 0.97);
-    const p1 = bezierPt(path[0], path[1], path[2], path[3], 1.0);
-    const a  = Math.atan2(p1.y - p0.y, p1.x - p0.x);
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p1.x - 9*Math.cos(a-0.4), p1.y - 9*Math.sin(a-0.4));
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p1.x - 9*Math.cos(a+0.4), p1.y - 9*Math.sin(a+0.4));
-    ctx.strokeStyle = color + '70';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    const mid = bezierPt(path[0], path[1], path[2], path[3], 0.5);
-    ctx.font = '500 10px Inter, sans-serif';
-    ctx.fillStyle = '#A1A1AA';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, mid.x, mid.y + (above ? -11 : 13));
-  }
-
-  function drawNode(x, y, w, h, label, color) {
-    ctx.shadowColor = color + '28';
-    ctx.shadowBlur = 14;
-    rrect(ctx, x - w/2, y - h/2, w, h, 8);
-    ctx.fillStyle = color + '10';
-    ctx.fill();
-    ctx.strokeStyle = color + '55';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.font = '700 11px Inter, sans-serif';
-    ctx.fillStyle = color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, x, y);
-  }
-
-  function animate() {
-    ctx.clearRect(0, 0, W, H);
-    drawCurve(topP, '#7c3aed', 'action', true);
-    drawCurve(botP, '#0891b2', 'reward + observation', false);
-    drawNode(AX, AY, NW, NH, 'AGENT', '#7c3aed');
-    drawNode(EX, EY, NW+20, NH, 'ENVIRONMENT', '#0891b2');
-
-    for (const p of particles) {
-      p.t = (p.t + p.speed) % 1;
-      const pos = bezierPt(p.path[0], p.path[1], p.path[2], p.path[3], p.t);
-      for (let k = 1; k <= 5; k++) {
-        const tt  = ((p.t - k * 0.018) + 1) % 1;
-        const tp  = bezierPt(p.path[0], p.path[1], p.path[2], p.path[3], tt);
-        const hex = Math.floor((1 - k/6) * 90).toString(16).padStart(2, '0');
-        ctx.beginPath();
-        ctx.arc(tp.x, tp.y, 3 * (1 - k/6), 0, Math.PI*2);
-        ctx.fillStyle = p.color + hex;
-        ctx.fill();
-      }
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 4, 0, Math.PI*2);
-      ctx.fillStyle = p.color;
-      ctx.fill();
-    }
-    requestAnimationFrame(animate);
-  }
-  animate();
-})();
 
 // ─── 2. Benchmark Pipeline ───────────────────────────────────────────────────
 (function () {
