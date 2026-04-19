@@ -225,114 +225,99 @@
     .sat-legend-item.sat-full     { color: #dc2626; }
     .sat-legend-sep { color: var(--border); font-size: 11px; }
 
-    /* ── landscape ── */
+    /* ── landscape matrix ── */
     .landscape-wrap {
       max-width: var(--max);
       margin: 0 auto;
-      padding: 48px 32px 96px;
+      padding: 32px 32px 0;
+      overflow-x: auto;
     }
 
-    .cat-section { margin-bottom: 52px; }
-
-    .cat-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    .cat-header-name {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--faint);
-      white-space: nowrap;
-    }
-    .cat-header-line { flex: 1; height: 1px; background: var(--border); }
-    .cat-header-count { font-size: 11px; color: var(--faint); white-space: nowrap; }
-
-    /* card grid */
-    .cards {
+    .matrix {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
-    }
-
-    /* card */
-    .card {
-      background: var(--white);
+      gap: 1px;
+      background: var(--border);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 20px 20px 16px;
-      text-decoration: none;
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      transition: border-color .15s, box-shadow .15s, opacity .22s ease, transform .22s ease;
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    .card.visible { opacity: 1; transform: translateY(0); }
-    .card:hover {
-      border-color: var(--p200);
-      box-shadow: 0 2px 20px rgba(124,58,237,.07);
+      overflow: hidden;
+      min-width: 560px;
     }
 
-    .card-kind {
+    .matrix > * { background: var(--white); }
+
+    .matrix-corner {
+      background: var(--bg) !important;
+    }
+
+    .matrix-col-hdr {
+      background: var(--bg) !important;
+      padding: 11px 12px 10px;
+    }
+    .matrix-col-hdr-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+    .matrix-col-hdr-range {
+      display: block;
+      font-size: 10px;
+      color: var(--faint);
+      font-weight: 400;
+      line-height: 1;
+    }
+    .matrix-col-hdr.sat-low .matrix-col-hdr-label      { color: #16a34a; }
+    .matrix-col-hdr.sat-somewhat .matrix-col-hdr-label { color: #ca8a04; }
+    .matrix-col-hdr.sat-almost .matrix-col-hdr-label   { color: #ea580c; }
+    .matrix-col-hdr.sat-full .matrix-col-hdr-label     { color: #dc2626; }
+    .matrix-col-hdr.sat-hard .matrix-col-hdr-label     { color: var(--faint); }
+
+    .matrix-row-lbl {
+      background: var(--bg) !important;
+      padding: 10px 12px;
       font-size: 10px;
       font-weight: 600;
-      letter-spacing: .09em;
+      letter-spacing: .07em;
       text-transform: uppercase;
-      color: var(--faint);
-      margin-bottom: 10px;
-    }
-
-    .card-name {
-      font-family: 'DM Serif Display', Georgia, serif;
-      font-size: 19px;
-      font-style: italic;
-      font-weight: 400;
-      line-height: 1.2;
-      letter-spacing: -.01em;
-      color: var(--text);
-      flex: 1;
-    }
-
-    .card-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 16px 0 12px;
-    }
-
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .card-cat {
-      font-size: 11px;
-      font-weight: 500;
       color: var(--muted);
+      line-height: 1.45;
     }
 
-    .card-sat {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--faint);
-      font-variant-numeric: tabular-nums;
+    .matrix-cell {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
-    .card-sat.sat-low    { color: #16a34a; }
-    .card-sat.sat-full   { color: #dc2626; }
-    .card-sat.sat-almost { color: #ea580c; }
-    .card-sat.sat-somewhat { color: #ca8a04; }
+
+    .bench-chip {
+      display: block;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-style: italic;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.35;
+      color: var(--text);
+      text-decoration: none;
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color .12s, background .12s, opacity .15s;
+      opacity: 0;
+    }
+    .bench-chip.visible { opacity: 1; }
+    .bench-chip:hover { color: var(--purple); background: var(--p50); }
 
     /* ── submit CTA ── */
     .submit-cta {
       max-width: var(--max);
       margin: 0 auto;
-      padding: 0 32px 80px;
+      padding: 40px 32px 80px;
     }
     .submit-cta-inner {
       border-top: 1px solid var(--border);
@@ -430,12 +415,9 @@
       /* sat legend */
       .sat-legend-inner { padding: 8px 16px; }
 
-      /* cards: 2-column */
-      .landscape-wrap { padding: 28px 16px 48px; }
-      .cards { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
-      .card { padding: 14px 14px 12px; }
-      .card-name { font-size: 16px; }
-      .cat-section { margin-bottom: 36px; }
+      .landscape-wrap { padding: 20px 16px 0; }
+      .matrix { min-width: 480px; }
+      .bench-chip { font-size: 11px; }
 
       /* submit CTA */
       .submit-cta { padding: 0 16px 48px; }
@@ -652,13 +634,19 @@ const BENCHMARKS = [
   { name:"MMMLU",                     cat:"multilingual", sat:"full",     type:"non-agentic", tags:"multilingual knowledge mmlu",  link:"https://huggingface.co/datasets/openai/MMMLU" },
 ];
 
-let fCat='all', fType='all', fSat='all', fQ='';
-let animTimer = null;
+const SATS = ['low', 'somewhat', 'almost', 'full', 'hard'];
+const SAT_HEADER = {
+  low:      { label: 'Frontier', range: '< 20%'  },
+  somewhat: { label: 'Emerging', range: '20–50%' },
+  almost:   { label: 'Maturing', range: '50–80%' },
+  full:     { label: 'Solved',   range: '> 80%'  },
+  hard:     { label: 'Unknown',  range: '—'       },
+};
 
-function matches(b) {
-  if (fCat !== 'all' && b.cat !== fCat) return false;
+let fCat='all', fType='all', fSat='all', fQ='';
+
+function matchesBench(b) {
   if (fType !== 'all' && b.type !== fType) return false;
-  if (fSat !== 'all' && b.sat !== fSat) return false;
   if (fQ) {
     const q = fQ.toLowerCase();
     if (!b.name.toLowerCase().includes(q) && !b.tags.toLowerCase().includes(q)) return false;
@@ -668,54 +656,60 @@ function matches(b) {
 
 function doRender() {
   const wrap = document.getElementById('landscape');
-  let html = '', total = 0;
+  const activeSats = fSat === 'all' ? SATS : [fSat];
 
-  for (const cat of CATS) {
-    const items = BENCHMARKS.filter(b => b.cat === cat.key && matches(b));
-    if (!items.length) continue;
-    total += items.length;
+  const matching = BENCHMARKS.filter(b =>
+    (fCat === 'all' || b.cat === fCat) &&
+    (fSat === 'all' || b.sat === fSat) &&
+    matchesBench(b)
+  );
+  document.getElementById('total-count').textContent = matching.length;
 
-    html += `<div class="cat-section">
-      <div class="cat-header">
-        <span class="cat-header-name">${cat.label}</span>
-        <div class="cat-header-line"></div>
-        <span class="cat-header-count">${items.length}</span>
-      </div>
-      <div class="cards">`;
-
-    items.forEach(b => {
-      html += `<a class="card" href="${b.link}" target="_blank" rel="noopener">
-        <div class="card-kind">${TYPE_LABEL[b.type] || b.type}</div>
-        <div class="card-name">${b.name}</div>
-        <div class="card-divider"></div>
-        <div class="card-footer">
-          <span class="card-cat">${cat.label}</span>
-          <span class="card-sat sat-${b.sat}">${SAT_LABEL[b.sat] || '—'}</span>
-        </div>
-      </a>`;
-    });
-
-    html += `</div></div>`;
+  if (!matching.length) {
+    wrap.innerHTML = `<div class="empty">No benchmarks match your filters.</div>`;
+    return;
   }
 
-  if (!total) html = `<div class="empty">No benchmarks match your filters.</div>`;
+  let html = `<div class="matrix" style="grid-template-columns:120px repeat(${activeSats.length},1fr)">`;
+
+  /* column headers */
+  html += '<div class="matrix-corner"></div>';
+  for (const sat of activeSats) {
+    const h = SAT_HEADER[sat];
+    html += `<div class="matrix-col-hdr sat-${sat}">
+      <span class="matrix-col-hdr-label">${h.label}</span>
+      <span class="matrix-col-hdr-range">${h.range}</span>
+    </div>`;
+  }
+
+  /* data rows — skip domains with no matching benchmarks */
+  for (const cat of CATS) {
+    if (fCat !== 'all' && fCat !== cat.key) continue;
+    const catMatch = matching.filter(b => b.cat === cat.key);
+    if (!catMatch.length) continue;
+
+    html += `<div class="matrix-row-lbl">${cat.label}</div>`;
+    for (const sat of activeSats) {
+      const items = catMatch.filter(b => b.sat === sat);
+      html += `<div class="matrix-cell">`;
+      items.forEach(b => {
+        html += `<a class="bench-chip" href="${b.link}" target="_blank" rel="noopener" title="${b.name}">${b.name}</a>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  html += '</div>';
   wrap.innerHTML = html;
-  document.getElementById('total-count').textContent = total;
 
   requestAnimationFrame(() => {
-    wrap.querySelectorAll('.card').forEach((card, i) => {
-      setTimeout(() => card.classList.add('visible'), i * 20);
+    wrap.querySelectorAll('.bench-chip').forEach((chip, i) => {
+      setTimeout(() => chip.classList.add('visible'), Math.min(i * 8, 400));
     });
   });
 }
 
-function render() {
-  const existing = document.querySelectorAll('#landscape .card');
-  if (!existing.length) { doRender(); return; }
-  existing.forEach(c => c.classList.remove('visible'));
-  clearTimeout(animTimer);
-  animTimer = setTimeout(doRender, 180);
-}
+function render() { doRender(); }
 
 document.querySelectorAll('[data-cat]').forEach(el => el.addEventListener('click', () => {
   document.querySelectorAll('[data-cat]').forEach(x => x.classList.remove('active'));
