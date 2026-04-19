@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Benchmark Landscape — islo.dev</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple:    #7c3aed;
+      --purple-lt: #8b5cf6;
+      --p50:       #f5f3ff;
+      --p100:      #ede9fe;
+      --p200:      #ddd6fe;
+      --border:    #E8E8EC;
+      --text:      #18181B;
+      --muted:     #71717A;
+      --faint:     #A1A1AA;
+      --bg:        #FAFAFA;
+      --white:     #FFFFFF;
+      --max:       1080px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--white);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── nav ── */
+    nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-brand { font-size: 13px; font-weight: 700; color: var(--purple); letter-spacing: -.01em; }
+    .nav-link  { font-size: 13px; font-weight: 500; color: var(--faint); transition: color .15s; }
+    .nav-link:hover { color: var(--text); }
+
+    /* ── hero ── */
+    .hero {
+      padding: 80px 32px 72px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-inner { max-width: var(--max); margin: 0 auto; }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--purple);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(36px, 5vw, 52px);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    h1 i { color: var(--purple-lt); font-style: italic; }
+
+    .hero-sub {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 440px;
+      margin-bottom: 44px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 0;
+    }
+    .stat-item {
+      padding-right: 36px;
+      margin-right: 36px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+    .stat-num {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -.04em;
+      color: var(--text);
+      display: block;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--faint);
+      display: block;
+      margin-top: 5px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .updated-at {
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--faint);
+      letter-spacing: .03em;
+    }
+
+    /* ── filter bar ── */
+    .filter-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 48px;
+      z-index: 50;
+    }
+    .filter-rows {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 32px;
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 44px;
+    }
+    .filter-row + .filter-row {
+      border-top: 1px solid var(--border);
+    }
+    .filter-row-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      white-space: nowrap;
+      width: 72px;
+      flex-shrink: 0;
+    }
+
+    .fsep { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; margin: 0 4px; }
+
+    .ftag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color .12s, background .12s;
+      font-family: inherit;
+    }
+    .ftag:hover { color: var(--text); background: var(--bg); }
+    .ftag.active { color: var(--text); font-weight: 600; background: var(--bg); border-color: var(--border); }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+    .search-box svg { color: var(--faint); flex-shrink: 0; }
+    #search {
+      font-size: 12px; color: var(--text);
+      background: transparent; border: none; outline: none; width: 130px;
+      padding: 4px 0;
+    }
+    #search::placeholder { color: var(--faint); }
+
+    /* ── saturation legend ── */
+    .sat-legend {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .sat-legend-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 9px 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sat-legend-label {
+      font-size: 11px;
+      color: var(--faint);
+      font-weight: 500;
+      margin-right: 4px;
+    }
+    .sat-legend-item {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .sat-legend-item.sat-low      { color: #16a34a; }
+    .sat-legend-item.sat-somewhat { color: #ca8a04; }
+    .sat-legend-item.sat-almost   { color: #ea580c; }
+    .sat-legend-item.sat-full     { color: #dc2626; }
+    .sat-legend-sep { color: var(--border); font-size: 11px; }
+
+    /* ── landscape matrix ── */
+    .landscape-wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 32px 32px 0;
+      overflow-x: auto;
+    }
+
+    .matrix {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      min-width: 560px;
+      position: relative;
+    }
+    .matrix::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle 280px at var(--spot-x, -9999px) var(--spot-y, -9999px), rgba(124,58,237,0.07), transparent 70%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .matrix > * { background: var(--white); }
+
+    .matrix-corner {
+      background: var(--bg) !important;
+    }
+
+    .matrix-col-hdr {
+      background: var(--bg) !important;
+      padding: 11px 12px 10px;
+    }
+    .matrix-col-hdr-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+    .matrix-col-hdr-range {
+      display: block;
+      font-size: 10px;
+      color: var(--faint);
+      font-weight: 400;
+      line-height: 1;
+    }
+    .matrix-col-hdr.sat-low .matrix-col-hdr-label      { color: #16a34a; }
+    .matrix-col-hdr.sat-somewhat .matrix-col-hdr-label { color: #ca8a04; }
+    .matrix-col-hdr.sat-almost .matrix-col-hdr-label   { color: #ea580c; }
+    .matrix-col-hdr.sat-full .matrix-col-hdr-label     { color: #dc2626; }
+    .matrix-col-hdr.sat-hard .matrix-col-hdr-label     { color: var(--faint); }
+
+    .matrix-row-lbl {
+      background: var(--bg) !important;
+      padding: 10px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .matrix-cell {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .bench-chip {
+      display: block;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-style: italic;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.35;
+      color: var(--text);
+      text-decoration: none;
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color .12s, background .12s, opacity .15s;
+      opacity: 0;
+    }
+    .bench-chip.visible { opacity: 1; }
+    .bench-chip:hover { color: var(--purple); background: var(--p50); }
+
+    /* ── submit CTA ── */
+    .submit-cta {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 40px 32px 80px;
+    }
+    .submit-cta-inner {
+      border-top: 1px solid var(--border);
+      padding-top: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .submit-cta-text {}
+    .submit-cta-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 10px;
+    }
+    .submit-cta-heading {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 26px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .submit-cta-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 380px;
+    }
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: 1px solid var(--p200);
+      border-radius: 100px;
+      background: var(--p50);
+      color: var(--purple);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background .15s, box-shadow .15s;
+    }
+    .submit-btn:hover {
+      background: var(--p100);
+      box-shadow: 0 2px 12px rgba(124,58,237,.12);
+    }
+
+    /* ── empty / footer ── */
+    .empty { padding: 80px 0; text-align: center; font-size: 14px; color: var(--faint); }
+
+    footer { border-top: 1px solid var(--border); }
+    .footer-inner {
+      max-width: var(--max); margin: 0 auto;
+      padding: 20px 32px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .footer-l { font-size: 12px; font-weight: 600; color: var(--purple); }
+    .footer-r { font-size: 12px; color: var(--faint); }
+    .footer-r a { color: var(--purple); }
+    .footer-r a:hover { text-decoration: underline; }
+
+    @media (max-width: 760px) {
+      h1 { font-size: 30px; }
+
+      .nav-inner { padding: 0 20px; }
+
+      .hero { padding: 48px 20px 44px; }
+      .hero-sub { font-size: 14px; margin-bottom: 32px; }
+
+      /* stats: 2×2 grid */
+      .stats { flex-wrap: wrap; }
+      .stat-item {
+        width: 50%;
+        padding-right: 0; margin-right: 0;
+        border-right: none;
+        padding-bottom: 16px; margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .stat-item:nth-child(n+3) { padding-bottom: 0; margin-bottom: 0; border-bottom: none; padding-top: 16px; }
+      .stat-item:nth-child(odd) { padding-right: 20px; border-right: 1px solid var(--border); }
+
+      /* filter: scrollable rows, hide labels */
+      .filter-rows { padding: 0 16px; }
+      .filter-row { overflow-x: auto; scrollbar-width: none; height: 42px; }
+      .filter-row::-webkit-scrollbar { display: none; }
+      .filter-row-lbl { display: none; }
+
+      /* sat legend */
+      .sat-legend-inner { padding: 8px 16px; }
+
+      .landscape-wrap { padding: 20px 16px 0; }
+      .matrix { min-width: 480px; }
+      .bench-chip { font-size: 12px; }
+
+      /* submit CTA */
+      .submit-cta { padding: 0 16px 48px; }
+      .submit-cta-inner { flex-direction: column; align-items: flex-start; gap: 24px; }
+
+      .footer-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-link" href="index.html">← The Story</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Agent Benchmark Landscape · 2026</div>
+    <h1>The agent benchmark<br><i>landscape.</i></h1>
+    <p class="hero-sub">A curated map of agentic evaluation benchmarks — coding, math, research, science, and more.</p>
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-num" id="total-count">0</span>
+        <span class="stat-lbl">Benchmarks</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="agentic-count">0</span>
+        <span class="stat-lbl">Agentic</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="unsat-count">0</span>
+        <span class="stat-lbl">Unsolved</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">7</span>
+        <span class="stat-lbl">Domains</span>
+      </div>
+    </div>
+    <p class="updated-at">Updated April 2026</p>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-rows">
+    <div class="filter-row">
+      <span class="filter-row-lbl">Domain</span>
+      <button class="ftag active" data-cat="all">All</button>
+      <button class="ftag" data-cat="coding">Coding</button>
+      <button class="ftag" data-cat="math">Math</button>
+      <button class="ftag" data-cat="agents">Agents</button>
+      <button class="ftag" data-cat="research">Research</button>
+      <button class="ftag" data-cat="science">Science</button>
+      <button class="ftag" data-cat="specialized">Specialized</button>
+      <button class="ftag" data-cat="multilingual">Multilingual</button>
+      <div class="search-box" style="margin-left:auto">
+        <svg width="12" height="12" viewBox="0 0 15 15" fill="none">
+          <path d="M10 6.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0zm-.816 3.89 2.563 2.563a.75.75 0 1 1-1.06 1.06L8.124 10.45A5 5 0 1 1 9.184 10.39z" fill="currentColor"/>
+        </svg>
+        <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-row-lbl">Type</span>
+      <button class="ftag active" data-type="all">All</button>
+      <button class="ftag" data-type="agentic">Agentic</button>
+      <button class="ftag" data-type="non-agentic">Non-agentic</button>
+      <button class="ftag" data-type="modified">Modified</button>
+      <div class="fsep"></div>
+      <span class="filter-row-lbl" style="width:auto;margin: 0 4px 0 2px">Saturation</span>
+      <button class="ftag active" data-sat="all">All</button>
+      <button class="ftag" data-sat="low">Frontier &lt;20%</button>
+      <button class="ftag" data-sat="somewhat">20–50%</button>
+      <button class="ftag" data-sat="almost">50–80%</button>
+      <button class="ftag" data-sat="full">Solved &gt;80%</button>
+    </div>
+  </div>
+</div>
+
+<div class="sat-legend">
+  <div class="sat-legend-inner">
+    <span class="sat-legend-label">Saturation — % of tasks solved by frontier models:</span>
+    <span class="sat-legend-item sat-low">Frontier &lt;20%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item sat-somewhat">20–50%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item sat-almost">50–80%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item sat-full">Solved &gt;80%</span>
+    <span class="sat-legend-sep">·</span>
+    <span class="sat-legend-item" style="color:var(--faint)">— Unknown</span>
+  </div>
+</div>
+
+<div class="landscape-wrap" id="landscape"></div>
+
+<div class="submit-cta">
+  <div class="submit-cta-inner">
+    <div class="submit-cta-text">
+      <div class="submit-cta-eyebrow">Missing a benchmark?</div>
+      <div class="submit-cta-heading">Get your work in front<br>of the community</div>
+      <p class="submit-cta-sub">We review submissions for quality and relevance. Open a GitHub issue with a link to your benchmark and we'll take a look.</p>
+    </div>
+    <a class="submit-btn" href="https://github.com/islo-labs/agent-benchmarks/issues/new" target="_blank" rel="noopener">
+      Submit a benchmark →
+    </a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-l">Agent benchmarks 2026</span>
+    <span class="footer-r">
+      <a href="https://docs.google.com/spreadsheets/d/1mJbiASPm32DDNzEnV6eDGwpEf3FlMUe5dhkZmFjjSoo" target="_blank" rel="noopener">Harbor Tracker</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+const CATS = [
+  { key:'coding',       label:'Coding & SWE'     },
+  { key:'math',         label:'Math & Reasoning'  },
+  { key:'agents',       label:'Agents & Tool-Use' },
+  { key:'research',     label:'Deep Research'     },
+  { key:'science',      label:'Science'           },
+  { key:'specialized',  label:'Specialized'       },
+  { key:'multilingual', label:'Multilingual'      },
+];
+
+const SAT_LABEL = {
+  'low':      '< 20%',
+  'somewhat': '20–50%',
+  'almost':   '50–80%',
+  'full':     '> 80%',
+  'hard':     '—',
+};
+
+const TYPE_LABEL = {
+  'agentic':     'Agentic',
+  'non-agentic': 'Non-agentic',
+  'modified':    'Modified',
+};
+
+const BENCHMARKS = [
+  { name:"SWE-bench Verified",        cat:"coding",       sat:"almost",   type:"agentic",     tags:"swe debugging python",         link:"https://swebench.com" },
+  { name:"SWE-Lancer",                cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe development freelance",    link:"https://openai.com/index/swe-lancer" },
+  { name:"SWE-Bench Pro",             cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe industrial repo",          link:"https://scale.com/research/swe_bench_pro" },
+  { name:"SWE-Bench Multilingual",    cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe multilingual",             link:"https://github.com/SWE-bench/SWE-bench" },
+  { name:"Multi-SWE-bench",           cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe multilingual annotated",   link:"https://multi-swe-bench.github.io" },
+  { name:"SWE-smith",                 cat:"coding",       sat:"low",      type:"agentic",     tags:"swe debugging 60k",            link:"https://github.com/SWE-bench/SWE-smith" },
+  { name:"SWE-perf",                  cat:"coding",       sat:"low",      type:"agentic",     tags:"swe speedup optimization",     link:"https://github.com/SWE-Perf/SWE-Perf" },
+  { name:"SWE-fficiency",             cat:"coding",       sat:"hard",     type:"agentic",     tags:"swe speedup numpy",            link:"https://swefficiency.com" },
+  { name:"SWE-Bench Mobile",          cat:"coding",       sat:"low",      type:"agentic",     tags:"swe ios mobile",               link:"https://arxiv.org/abs/2602.09540" },
+  { name:"ACE-Bench",                 cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe feature development",      link:"https://openreview.net/pdf?id=41xrZ3uGuI" },
+  { name:"LiveCodeBench",             cat:"coding",       sat:"full",     type:"non-agentic", tags:"coding contest live",          link:"https://github.com/LiveCodeBench/LiveCodeBench" },
+  { name:"LiveBench",                 cat:"coding",       sat:"almost",   type:"non-agentic", tags:"coding math reasoning contamination-resistant", link:"https://livebench.ai" },
+  { name:"MLE-bench",                 cat:"coding",       sat:"low",      type:"agentic",     tags:"kaggle ml engineering competitions",  link:"https://github.com/openai/mle-bench" },
+  { name:"LiveCodeBench Pro",         cat:"coding",       sat:"almost",   type:"modified",    tags:"competitive programming",      link:"https://livecodebenchpro.com" },
+  { name:"Aider Polyglot",            cat:"coding",       sat:"full",     type:"non-agentic", tags:"repo multilingual",            link:"https://github.com/Aider-AI/aider/tree/main/benchmark" },
+  { name:"BigCodeBench",              cat:"coding",       sat:"almost",   type:"modified",    tags:"code generation",              link:"https://github.com/bigcode-project/bigcodebench" },
+  { name:"USACO",                     cat:"coding",       sat:"somewhat", type:"non-agentic", tags:"competitive programming usa",  link:"https://github.com/princeton-nlp/USACO" },
+  { name:"AlgoTune",                  cat:"coding",       sat:"hard",     type:"agentic",     tags:"speedup algorithms",           link:"https://github.com/oripress/AlgoTune" },
+  { name:"CompileBench",              cat:"coding",       sat:"full",     type:"agentic",     tags:"compilers build",              link:"https://compilebench.com" },
+  { name:"Spider 2",                  cat:"coding",       sat:"low",      type:"modified",    tags:"sql enterprise",               link:"https://spider2-sql.github.io" },
+  { name:"GitGoodBench",              cat:"coding",       sat:"somewhat", type:"agentic",     tags:"git version control",          link:"https://github.com/JetBrains-Research/git-good-bench" },
+  { name:"PaperBench",                cat:"coding",       sat:"somewhat", type:"agentic",     tags:"paper reproduction icml",      link:"https://openai.com/index/paperbench" },
+  { name:"AIME",                      cat:"math",         sat:"full",     type:"non-agentic", tags:"math contest olympiad",        link:"https://artificialanalysis.ai/evaluations/aime-2025" },
+  { name:"ARC-AGI-2",                 cat:"math",         sat:"low",      type:"non-agentic", tags:"abstract reasoning",           link:"https://arxiv.org/pdf/2505.11831" },
+  { name:"ARC-AGI-3",                 cat:"math",         sat:"low",      type:"agentic",     tags:"abstract reasoning arc",       link:"https://arcprize.org/arc-agi/3" },
+  { name:"FrontierMath",              cat:"math",         sat:"low",      type:"non-agentic", tags:"math expert frontier",         link:"https://arxiv.org/pdf/2411.04872" },
+  { name:"IneqMath",                  cat:"math",         sat:"almost",   type:"non-agentic", tags:"inequalities olympiad",        link:"https://ineqmath.github.io" },
+  { name:"FrontierCO",                cat:"math",         sat:"almost",   type:"agentic",     tags:"combinatorial optimization",   link:"https://arxiv.org/pdf/2505.16952" },
+  { name:"CL-Bench",                  cat:"math",         sat:"somewhat", type:"non-agentic", tags:"long context reasoning",       link:"https://arxiv.org/abs/2602.03587" },
+  { name:"Reasoning Gym",             cat:"math",         sat:"somewhat", type:"non-agentic", tags:"logic math curriculum",        link:"https://github.com/open-thought/reasoning-gym" },
+  { name:"SimpleQA",                  cat:"math",         sat:"almost",   type:"non-agentic", tags:"factuality hallucination",     link:"https://github.com/openai/simple-evals" },
+  { name:"Humanity's Last Exam",      cat:"math",         sat:"somewhat", type:"non-agentic", tags:"expert questions science humanities math", link:"https://agi.safe.ai" },
+  { name:"GAIA",                      cat:"agents",       sat:"full",     type:"agentic",     tags:"general assistant tools",      link:"https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/gaia" },
+  { name:"GAIA2",                     cat:"agents",       sat:"somewhat", type:"agentic",     tags:"async agents dynamic",         link:"https://arxiv.org/abs/2602.11964" },
+  { name:"Tau-Bench",                 cat:"agents",       sat:"almost",   type:"agentic",     tags:"tool use api services",        link:"https://github.com/sierra-research/tau-bench" },
+  { name:"Tau2-Bench",                cat:"agents",       sat:"somewhat", type:"agentic",     tags:"tool use long-horizon",        link:"https://github.com/sierra-research/tau2-bench" },
+  { name:"APEX-Agents",               cat:"agents",       sat:"somewhat", type:"agentic",     tags:"long-horizon professional",    link:"https://arxiv.org/pdf/2601.14242" },
+  { name:"OSWorld",                   cat:"agents",       sat:"low",      type:"modified",    tags:"gui computer use",             link:"https://os-world.github.io" },
+  { name:"WebArena-Verified",         cat:"agents",       sat:"somewhat", type:"agentic",     tags:"web browsing gui",             link:"https://github.com/ServiceNow/webarena-verified" },
+  { name:"Berkeley Function Calling", cat:"agents",       sat:"almost",   type:"modified",    tags:"function calling tool use",    link:"https://gorilla.cs.berkeley.edu/leaderboard.html" },
+  { name:"SpreadsheetBench",          cat:"agents",       sat:"almost",   type:"agentic",     tags:"spreadsheets excel",           link:"https://spreadsheetbench.github.io" },
+  { name:"MCPMark",                   cat:"agents",       sat:"almost",   type:"agentic",     tags:"mcp tool workflows",           link:"https://arxiv.org/pdf/2509.24002" },
+  { name:"Vending-Bench",             cat:"agents",       sat:"hard",     type:"non-agentic", tags:"long-horizon interaction",     link:"https://andonlabs.com/evals/vending-bench" },
+  { name:"TerminalBench",             cat:"agents",       sat:"full",     type:"agentic",     tags:"terminal cli sysadmin devops",  link:"https://www.tbench.ai" },
+  { name:"AppWorld",                  cat:"agents",       sat:"somewhat", type:"agentic",     tags:"multi-app api daily tasks",    link:"https://appworld.dev" },
+  { name:"WideSearch",                cat:"research",     sat:"almost",   type:"agentic",     tags:"deep research information",    link:"https://arxiv.org/pdf/2508.07999" },
+  { name:"Seal-0",                    cat:"research",     sat:"somewhat", type:"agentic",     tags:"search noisy facts",           link:"https://llm-stats.com/benchmarks/seal-0" },
+  { name:"BrowseComp-Plus",           cat:"research",     sat:"almost",   type:"agentic",     tags:"web research retrieval",       link:"https://github.com/texttron/BrowseComp-Plus" },
+  { name:"FutureX",                   cat:"research",     sat:"somewhat", type:"agentic",     tags:"future prediction live",       link:"https://arxiv.org/abs/2508.11987" },
+  { name:"DeepSynth",                 cat:"research",     sat:"low",      type:"agentic",     tags:"search synthesis",             link:"https://openreview.net/pdf?id=0Dhpt9aY3n" },
+  { name:"AssistantBench",            cat:"research",     sat:"low",      type:"agentic",     tags:"web research browsing tasks",  link:"https://assistantbench.github.io" },
+  { name:"RE-Bench",                  cat:"research",     sat:"hard",     type:"agentic",     tags:"ml research engineering metr", link:"https://metr.org/blog/2024-11-22-evaluating-r-d-capabilities-of-llms" },
+  { name:"GPQA Diamond",              cat:"science",      sat:"full",     type:"non-agentic", tags:"science graduate expert",      link:"https://epoch.ai/benchmarks/gpqa-diamond" },
+  { name:"CritPt",                    cat:"science",      sat:"low",      type:"modified",    tags:"physics research hard",        link:"https://critpt.com" },
+  { name:"LAB-Bench",                 cat:"science",      sat:"somewhat", type:"non-agentic", tags:"biology scientific",           link:"https://github.com/Future-House/LAB-Bench" },
+  { name:"QCircuitBench",             cat:"science",      sat:"hard",     type:"non-agentic", tags:"quantum circuit",              link:"https://arxiv.org/pdf/2410.07961v2" },
+  { name:"SLDBench",                  cat:"science",      sat:"hard",     type:"agentic",     tags:"scientific discovery data",    link:"https://github.com/linhaowei1/SLD" },
+  { name:"MLGym-Bench",               cat:"science",      sat:"full",     type:"modified",    tags:"ml research gym",              link:"https://github.com/facebookresearch/MLGym" },
+  { name:"ASTA-Bench",                cat:"science",      sat:"almost",   type:"modified",    tags:"research agents tools",        link:"https://github.com/allenai/asta-bench" },
+  { name:"InnovatorBench",            cat:"science",      sat:"somewhat", type:"agentic",     tags:"ai research long-horizon",     link:"https://arxiv.org/pdf/2510.27598" },
+  { name:"SciCode",                   cat:"science",      sat:"low",      type:"non-agentic", tags:"scientific coding physics chemistry biology", link:"https://scicode-bench.github.io" },
+  { name:"CVE-Bench",                 cat:"specialized",  sat:"somewhat", type:"agentic",     tags:"security cve exploits",        link:"https://github.com/uiuc-kang-lab/cve-bench" },
+  { name:"CyberGym",                  cat:"specialized",  sat:"somewhat", type:"agentic",     tags:"cybersecurity",                link:"https://cybergym.io" },
+  { name:"Cybench",                   cat:"specialized",  sat:"low",      type:"agentic",     tags:"ctf capture the flag security", link:"https://cybench.github.io" },
+  { name:"FinanceAgent",              cat:"specialized",  sat:"almost",   type:"agentic",     tags:"finance sec analyst",          link:"https://vals.ai/benchmarks/finance_agent" },
+  { name:"LawBench",                  cat:"specialized",  sat:"almost",   type:"non-agentic", tags:"law legal reasoning",          link:"https://github.com/open-compass/LawBench" },
+  { name:"MedAgentBench",             cat:"specialized",  sat:"almost",   type:"agentic",     tags:"healthcare medical",           link:"https://arxiv.org/pdf/2501.14654" },
+  { name:"OpenRCA",                   cat:"specialized",  sat:"somewhat", type:"agentic",     tags:"software ops telemetry",       link:"https://github.com/microsoft/OpenRCA" },
+  { name:"DAComp",                    cat:"specialized",  sat:"somewhat", type:"agentic",     tags:"data science engineering",     link:"https://arxiv.org/pdf/2512.04324" },
+  { name:"MMMLU",                     cat:"multilingual", sat:"full",     type:"non-agentic", tags:"multilingual knowledge mmlu",  link:"https://huggingface.co/datasets/openai/MMMLU" },
+];
+
+const SATS = ['low', 'somewhat', 'almost', 'full', 'hard'];
+const SAT_HEADER = {
+  low:      { label: 'Frontier', range: '< 20%'  },
+  somewhat: { label: 'Emerging', range: '20–50%' },
+  almost:   { label: 'Maturing', range: '50–80%' },
+  full:     { label: 'Solved',   range: '> 80%'  },
+  hard:     { label: 'Unknown',  range: '—'       },
+};
+
+let fCat='all', fType='all', fSat='all', fQ='';
+
+function matchesBench(b) {
+  if (fType !== 'all' && b.type !== fType) return false;
+  if (fQ) {
+    const q = fQ.toLowerCase();
+    if (!b.name.toLowerCase().includes(q) && !b.tags.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+
+function doRender() {
+  const wrap = document.getElementById('landscape');
+  const activeSats = fSat === 'all' ? SATS : [fSat];
+
+  const matching = BENCHMARKS.filter(b =>
+    (fCat === 'all' || b.cat === fCat) &&
+    (fSat === 'all' || b.sat === fSat) &&
+    matchesBench(b)
+  );
+  document.getElementById('total-count').textContent = matching.length;
+
+  if (!matching.length) {
+    wrap.innerHTML = `<div class="empty">No benchmarks match your filters.</div>`;
+    return;
+  }
+
+  let html = `<div class="matrix" style="grid-template-columns:120px repeat(${activeSats.length},1fr)">`;
+
+  /* column headers */
+  html += '<div class="matrix-corner"></div>';
+  for (const sat of activeSats) {
+    const h = SAT_HEADER[sat];
+    html += `<div class="matrix-col-hdr sat-${sat}">
+      <span class="matrix-col-hdr-label">${h.label}</span>
+      <span class="matrix-col-hdr-range">${h.range}</span>
+    </div>`;
+  }
+
+  /* data rows — skip domains with no matching benchmarks */
+  for (const cat of CATS) {
+    if (fCat !== 'all' && fCat !== cat.key) continue;
+    const catMatch = matching.filter(b => b.cat === cat.key);
+    if (!catMatch.length) continue;
+
+    html += `<div class="matrix-row-lbl">${cat.label}</div>`;
+    for (const sat of activeSats) {
+      const items = catMatch.filter(b => b.sat === sat);
+      html += `<div class="matrix-cell">`;
+      items.forEach(b => {
+        html += `<a class="bench-chip" href="${b.link}" target="_blank" rel="noopener" title="${b.name}">${b.name}</a>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  requestAnimationFrame(() => {
+    wrap.querySelectorAll('.bench-chip').forEach((chip, i) => {
+      setTimeout(() => chip.classList.add('visible'), Math.min(i * 8, 400));
+    });
+  });
+}
+
+function render() { doRender(); }
+
+document.querySelectorAll('[data-cat]').forEach(el => el.addEventListener('click', () => {
+  document.querySelectorAll('[data-cat]').forEach(x => x.classList.remove('active'));
+  el.classList.add('active'); fCat = el.dataset.cat; render();
+}));
+document.querySelectorAll('[data-type]').forEach(el => el.addEventListener('click', () => {
+  document.querySelectorAll('[data-type]').forEach(x => x.classList.remove('active'));
+  el.classList.add('active'); fType = el.dataset.type; render();
+}));
+document.querySelectorAll('[data-sat]').forEach(el => el.addEventListener('click', () => {
+  document.querySelectorAll('[data-sat]').forEach(x => x.classList.remove('active'));
+  el.classList.add('active'); fSat = el.dataset.sat; render();
+}));
+document.getElementById('search').addEventListener('input', e => { fQ = e.target.value.trim(); render(); });
+
+function countUp(el, target, duration) {
+  const start = performance.now();
+  (function step(now) {
+    const t = Math.min((now - start) / (duration || 700), 1);
+    el.textContent = Math.round((1 - Math.pow(1 - t, 3)) * target);
+    if (t < 1) requestAnimationFrame(step);
+  })(start);
+}
+
+countUp(document.getElementById('total-count'),   BENCHMARKS.length, 800);
+countUp(document.getElementById('agentic-count'), BENCHMARKS.filter(b => b.type === 'agentic').length, 700);
+countUp(document.getElementById('unsat-count'),   BENCHMARKS.filter(b => b.sat === 'low').length, 600);
+
+render();
+
+// Spotlight
+(function () {
+  const wrap = document.getElementById('landscape');
+  function m() { return wrap.querySelector('.matrix'); }
+  wrap.addEventListener('mousemove', e => {
+    const el = m(); if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--spot-x', (e.clientX - r.left) + 'px');
+    el.style.setProperty('--spot-y', (e.clientY - r.top) + 'px');
+  });
+  wrap.addEventListener('mouseleave', () => {
+    const el = m();
+    if (el) { el.style.setProperty('--spot-x', '-9999px'); el.style.setProperty('--spot-y', '-9999px'); }
+  });
+})();
+</script>
+</body>
+</html>
