@@ -188,7 +188,7 @@
       overflow: hidden;
       position: relative;
     }
-    .vis canvas { display: block; width: 100%; height: auto; }
+    .vis canvas { display: block; width: 100%; aspect-ratio: 520 / 300; }
     .vis-label {
       position: absolute;
       bottom: 10px;
@@ -219,7 +219,95 @@
     .vis-toggle:hover { border-color: var(--p200); color: var(--purple); }
     .vis-toggle.active { background: var(--p50); border-color: var(--p200); color: var(--purple); }
 
-    /* ── CTA ── */
+    /* ── Statement (ch4) ── */
+    .statement {
+      padding: 100px 32px 80px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      text-align: center;
+    }
+    .statement-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--purple); margin-bottom: 20px;
+    }
+    .statement h2 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(30px, 4vw, 48px);
+      font-weight: 400; line-height: 1.12; letter-spacing: -.02em;
+      color: var(--text); max-width: 740px; margin: 0 auto 16px;
+    }
+    .statement h2 i { color: var(--purple-lt); font-style: italic; }
+    .statement-sub {
+      font-size: 16px; color: var(--muted); line-height: 1.65;
+      max-width: 520px; margin: 0 auto 60px;
+    }
+
+    .split-vis {
+      max-width: 1080px; margin: 0 auto 52px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    .split-panel {
+      border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--border); background: var(--white);
+      text-align: left;
+    }
+    .split-panel canvas {
+      display: block; width: 100%; aspect-ratio: 520 / 300;
+    }
+    .split-panel-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 20px; flex-wrap: wrap;
+    }
+    .sp-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 500; color: var(--muted);
+    }
+    .sp-item .sp-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .split-closing {
+      font-size: 17px; font-weight: 500; color: var(--text);
+      max-width: 560px; margin: 0 auto; line-height: 1.6;
+    }
+    .split-closing em { color: var(--purple); font-style: normal; font-weight: 600; }
+
+    /* ── Further reading ── */
+    .further {
+      padding: 80px 32px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+    .further-inner { max-width: 1080px; margin: 0 auto; }
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--faint); margin-bottom: 28px;
+    }
+    .fr-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .fr-card {
+      padding: 20px; border: 1px solid var(--border); border-radius: 8px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .fr-card:hover {
+      border-color: var(--p200);
+      box-shadow: 0 2px 12px rgba(124,58,237,.08);
+    }
+    .fr-tag {
+      font-size: 10px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--purple);
+      background: var(--p50); border-radius: 4px;
+      padding: 2px 6px; display: inline-block; margin-bottom: 10px;
+    }
+    .fr-title {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      margin-bottom: 4px; line-height: 1.4;
+    }
+    .fr-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+    .fr-src { font-size: 11px; color: var(--faint); }
+
+/* ── CTA ── */
     .cta {
       padding: 110px 32px;
       text-align: center;
@@ -302,7 +390,7 @@
 </section>
 
 <!-- ── Chapter 1: RL ── -->
-<section class="chapter">
+<section class="chapter" id="ch-rl">
   <div class="chapter-inner">
     <div class="reveal">
       <div class="chapter-num">01 · Reinforcement Learning</div>
@@ -357,6 +445,62 @@
     </div>
   </div>
 </section>
+
+<!-- ── Chapter 4: Infrastructure (statement) ── -->
+<section class="statement" id="ch-infra">
+  <div class="statement-eyebrow reveal">04 · The Root Cause</div>
+  <h2 class="reveal">The benchmark is only as honest<br>as the <i>environment</i> it runs in.</h2>
+  <p class="statement-sub reveal">Agents don't cheat because they're broken. They cheat because nothing stops them. Writing better tasks is an arms race you will lose.</p>
+
+  <div class="split-vis reveal">
+    <div class="split-panel">
+      <canvas id="infra-open" width="520" height="300"></canvas>
+      <div class="split-panel-footer">
+        <div class="sp-item"><span class="sp-dot" style="background:#dc2626"></span>Filesystem open</div>
+        <div class="sp-item"><span class="sp-dot" style="background:#dc2626"></span>Network unrestricted</div>
+        <div class="sp-item"><span class="sp-dot" style="background:#dc2626"></span>Process exposed</div>
+      </div>
+    </div>
+    <div class="split-panel">
+      <canvas id="infra-locked" width="520" height="300"></canvas>
+      <div class="split-panel-footer">
+        <div class="sp-item"><span class="sp-dot" style="background:#16a34a"></span>Filesystem locked</div>
+        <div class="sp-item"><span class="sp-dot" style="background:#16a34a"></span>Network blocked</div>
+        <div class="sp-item"><span class="sp-dot" style="background:#16a34a"></span>Process isolated</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="split-closing reveal">When the environment makes cheating <em>impossible</em>, scores become honest again.</p>
+</section>
+
+<!-- ── Further Reading ── -->
+<section class="further">
+  <div class="further-inner">
+    <div class="section-title reveal">Further Reading</div>
+    <div class="fr-grid reveal">
+      <a class="fr-card" href="https://debugml.github.io/cheating-agents/" target="_blank" rel="noopener">
+        <div class="fr-tag">Research</div>
+        <div class="fr-title">Cheating Agents</div>
+        <div class="fr-desc">28+ documented cases of agents exploiting benchmark harnesses across 9 benchmarks. The paper that named the problem.</div>
+        <div class="fr-src">debugml.github.io</div>
+      </a>
+      <a class="fr-card" href="https://arxiv.org/abs/2310.06770" target="_blank" rel="noopener">
+        <div class="fr-tag">Paper</div>
+        <div class="fr-title">SWE-bench</div>
+        <div class="fr-desc">The canonical coding benchmark: real GitHub issues, automated test evaluation. Also a case study in what open environments enable.</div>
+        <div class="fr-src">arxiv.org</div>
+      </a>
+      <a class="fr-card" href="https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/" target="_blank" rel="noopener">
+        <div class="fr-tag">Blog</div>
+        <div class="fr-title">Specification Gaming</div>
+        <div class="fr-desc">DeepMind's catalog of agents exploiting reward signals in unexpected ways — the conceptual foundation for reward hacking.</div>
+        <div class="fr-src">deepmind.google</div>
+      </a>
+    </div>
+  </div>
+</section>
+
 
 <!-- ── CTA ── -->
 <section class="cta">
@@ -491,14 +635,12 @@ function bezierPt(p0, p1, p2, p3, t) {
 
 function setupCanvas(id) {
   const canvas = document.getElementById(id);
-  const ctx = canvas.getContext('2d');
-  const CW = parseInt(canvas.getAttribute('width'));
-  const CH = parseInt(canvas.getAttribute('height'));
-  const dpr = window.devicePixelRatio || 1;
+  const ctx    = canvas.getContext('2d');
+  const dpr    = window.devicePixelRatio || 1;
+  const CW     = canvas.offsetWidth  || parseInt(canvas.getAttribute('width'));
+  const CH     = canvas.offsetHeight || parseInt(canvas.getAttribute('height'));
   canvas.width  = CW * dpr;
   canvas.height = CH * dpr;
-  canvas.style.width  = '100%';
-  canvas.style.height = 'auto';
   ctx.scale(dpr, dpr);
   return { ctx, W: CW, H: CH };
 }
@@ -881,6 +1023,117 @@ function rrect(ctx, x, y, w, h, r) {
   }
   animate(); spawnParticle();
 })();
+
+// ─── 4. Infrastructure — shared factory ──────────────────────────────────────
+function makeInfraCanvas(id, controlled) {
+  const { ctx, W, H } = setupCanvas(id);
+  const CX = W / 2, CY = H / 2, R = 72;
+  const particles = [];
+  let frame = 0;
+
+  const GATES = [
+    { angle: -Math.PI / 2,  label: 'FILESYSTEM' },
+    { angle:  Math.PI / 5,  label: 'NETWORK'    },
+    { angle:  Math.PI*4/5,  label: 'PROCESS'    },
+  ];
+  const EXPLOIT_ANGLES = [-0.55, 0.38, -2.0, 2.25, 1.15, -1.5];
+  let ei = 0;
+
+  function spawnTask() {
+    particles.push({ type:'task', x:12, y:CY+(Math.random()-0.5)*18,
+      vx:1.8, color:'#16a34a', size:4.5, trail:[] });
+  }
+  function spawnExploit() {
+    const a = EXPLOIT_ANGLES[ei++ % EXPLOIT_ANGLES.length];
+    const d = R + 48 + Math.random()*24;
+    particles.push({ type:'exploit',
+      x:CX+Math.cos(a)*d, y:CY+Math.sin(a)*d,
+      color:'#dc2626', size:4.2, trail:[],
+      blocked:false, bvx:0, bvy:0 });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+    if (frame % 50 === 0) spawnTask();
+    if (frame % 38 === 0) spawnExploit();
+
+    // Ring halo
+    ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2);
+    ctx.strokeStyle = controlled ? 'rgba(22,163,74,.12)' : 'rgba(220,38,38,.08)';
+    ctx.lineWidth = 14; ctx.setLineDash([]); ctx.stroke();
+
+    // Ring line
+    ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2);
+    ctx.strokeStyle = controlled ? 'rgba(22,163,74,.6)' : 'rgba(220,38,38,.28)';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash(controlled ? [] : [7, 11]);
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // Gate markers + labels
+    GATES.forEach(g => {
+      const gx = CX+Math.cos(g.angle)*R, gy = CY+Math.sin(g.angle)*R;
+      const lx = CX+Math.cos(g.angle)*(R+27), ly = CY+Math.sin(g.angle)*(R+27);
+      ctx.beginPath(); ctx.arc(gx, gy, 5, 0, Math.PI*2);
+      ctx.fillStyle = controlled ? '#16a34a' : '#ea580c'; ctx.fill();
+      ctx.font = '600 9px Inter, sans-serif';
+      ctx.fillStyle = controlled ? '#16a34a' : '#A1A1AA';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(g.label, lx, ly);
+    });
+
+    // Agent
+    const pulse = Math.sin(frame*0.04)*0.5+0.5;
+    ctx.shadowColor = `rgba(124,58,237,${0.1+pulse*0.1})`; ctx.shadowBlur = 10+pulse*8;
+    ctx.beginPath(); ctx.arc(CX, CY, 24, 0, Math.PI*2);
+    ctx.fillStyle = '#f5f3ff'; ctx.fill();
+    ctx.strokeStyle = `rgba(124,58,237,${0.35+pulse*0.2})`; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.font='700 10px Inter, sans-serif'; ctx.fillStyle='#7c3aed';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('AGENT', CX, CY);
+
+    // Status label
+    ctx.font='600 10px Inter, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillStyle = controlled ? '#16a34a' : '#dc2626';
+    ctx.fillText(controlled ? '✓  Isolated' : '✗  No isolation', 14, 13);
+
+    // Particles
+    for (let i = particles.length-1; i >= 0; i--) {
+      const p = particles[i];
+      if (p.type === 'task') {
+        p.x += p.vx;
+        if (p.x > W+14) { particles.splice(i,1); continue; }
+      } else {
+        if (!p.blocked) {
+          const dx=CX-p.x, dy=CY-p.y, d=Math.sqrt(dx*dx+dy*dy);
+          p.x += dx/d*1.3; p.y += dy/d*1.3;
+          if (d <= R+2) {
+            if (controlled) { p.blocked=true; p.bvx=-(dx/d)*2.2; p.bvy=-(dy/d)*2.2; }
+            else if (d < 12) { particles.splice(i,1); continue; }
+          }
+        } else {
+          p.bvx*=0.93; p.bvy*=0.93; p.x+=p.bvx; p.y+=p.bvy;
+          p.size*=0.965;
+          if (p.size<0.5) { particles.splice(i,1); continue; }
+        }
+      }
+      p.trail.push({x:p.x,y:p.y}); if(p.trail.length>7) p.trail.shift();
+      p.trail.forEach((tp,ti)=>{
+        const a=Math.floor(ti/p.trail.length*0.4*255).toString(16).padStart(2,'0');
+        ctx.beginPath(); ctx.arc(tp.x,tp.y,p.size*.5,0,Math.PI*2);
+        ctx.fillStyle=p.color+a; ctx.fill();
+      });
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=p.color; ctx.fill();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate(); spawnTask(); spawnExploit();
+}
+
+makeInfraCanvas('infra-open',   false);
+makeInfraCanvas('infra-locked', true);
 </script>
 </body>
 </html>
