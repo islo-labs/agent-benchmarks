@@ -425,11 +425,47 @@
   </div>
 </section>
 
-<!-- ── Chapter 3: Reward Hacking ── -->
+<!-- ── Chapter 2: How They Run ── -->
+<section class="chapter" id="ch-run">
+  <div class="chapter-inner">
+    <div class="reveal">
+      <div class="chapter-num">02 · How They Run</div>
+      <h2>A fixed track, a stopwatch,<br>and a <i>judge</i>.</h2>
+      <div class="chapter-body">
+        <p>Every benchmark follows the same pipeline. A curated task bank provides the inputs — real GitHub issues, math problems, research questions. An evaluation harness feeds them one at a time to the model in a controlled environment. The model produces outputs. A grader — usually automated — checks them against known correct answers.</p>
+        <p>The result is a number between 0 and 100. That number gets published on a leaderboard, cited in papers, and referenced in funding decks. The pipeline looks simple from the outside. What happens inside each stage is where things get complicated.</p>
+      </div>
+    </div>
+    <div class="vis reveal">
+      <canvas id="run-canvas" width="520" height="300"></canvas>
+      <span class="vis-label">Evaluation pipeline</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Chapter 3: The Race ── -->
+<section class="chapter flip" id="ch-race">
+  <div class="chapter-inner">
+    <div class="reveal">
+      <div class="chapter-num">03 · The Race</div>
+      <h2>A two-point jump<br>makes the <i>front page</i>.</h2>
+      <div class="chapter-body">
+        <p>Once a benchmark is widely cited, it becomes a target. Labs track each other's scores in real time. A new state-of-the-art on SWE-bench moves recruiting pipelines. A jump on GPQA goes straight into a press release.</p>
+        <p>The competition is genuinely productive — models have gotten measurably better at the tasks that matter. But as scores became proxies for capability, a quieter pressure built. Training data shifts toward benchmark-adjacent tasks. Prompts get tuned for the exact format. The gap between scoring well and being capable starts to widen — silently.</p>
+      </div>
+    </div>
+    <div class="vis reveal">
+      <canvas id="race-canvas" width="520" height="300"></canvas>
+      <span class="vis-label">Benchmark leaderboard</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Chapter 4: Reward Hacking ── -->
 <section class="chapter">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">02 · Reward Hacking</div>
+      <div class="chapter-num">04 · Reward Hacking</div>
       <h2>The agent found<br>a <i>loophole</i>.</h2>
       <div class="chapter-body">
         <p>When the reward signal doesn't perfectly capture what we want, agents learn to exploit the gap. They find paths that score well on the metric without actually doing the task.</p>
@@ -449,7 +485,7 @@
 <section class="chapter flip" id="ch-fix">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">03 · The Fix</div>
+      <div class="chapter-num">05 · The Fix</div>
       <h2>You can't write your<br>way out of it.</h2>
       <div class="chapter-body">
         <p>The first instinct is to write harder tasks: rotate held-out test sets, obfuscate input names, generate tasks at evaluation time. It buys a few months — until the next model finds the pattern anyway.</p>
@@ -466,7 +502,7 @@
 
 <!-- ── Chapter 4: Infrastructure (statement) ── -->
 <section class="statement" id="ch-infra">
-  <div class="statement-eyebrow reveal">04 · The Root Cause</div>
+  <div class="statement-eyebrow reveal">06 · The Root Cause</div>
   <h2 class="reveal">The benchmark is only as honest<br>as the <i>environment</i> it runs in.</h2>
   <p class="statement-sub reveal">Agents don't cheat because they're broken. They cheat because nothing stops them. Writing better tasks is an arms race you will lose.</p>
 
@@ -790,7 +826,130 @@ function rrect(ctx, x, y, w, h, r) {
   animate(); nextTask();
 })();
 
-// ─── 3. Defense Layers (fix-canvas) ─────────────────────────────────────────
+// ─── 3. Evaluation Pipeline (run-canvas) ─────────────────────────────────────
+(function () {
+  const { ctx, W, H } = setupCanvas('run-canvas');
+  const STAGES = [
+    { label: 'TASK\nBANK',  color: '#7c3aed', x: W*0.10 },
+    { label: 'HARNESS',     color: '#0891b2', x: W*0.30 },
+    { label: 'MODEL',       color: '#7c3aed', x: W*0.50 },
+    { label: 'GRADER',      color: '#f59e0b', x: W*0.70 },
+    { label: 'SCORE',       color: '#16a34a', x: W*0.90 },
+  ];
+  const BW = 54, BH = 34, LY = H * 0.5;
+  const particles = [];
+  let frame = 0;
+
+  function spawn() {
+    particles.push({ x: STAGES[0].x + BW/2, y: LY, si: 1 });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+    if (frame % 65 === 0) spawn();
+
+    for (let i = 0; i < STAGES.length - 1; i++) {
+      const x0 = STAGES[i].x + BW/2, x1 = STAGES[i+1].x - BW/2;
+      ctx.beginPath(); ctx.moveTo(x0, LY); ctx.lineTo(x1, LY);
+      ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(x1, LY); ctx.lineTo(x1-7, LY-4); ctx.moveTo(x1, LY); ctx.lineTo(x1-7, LY+4);
+      ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.2; ctx.stroke();
+    }
+
+    STAGES.forEach(s => {
+      ctx.shadowColor = s.color + '22'; ctx.shadowBlur = 10;
+      rrect(ctx, s.x - BW/2, LY - BH/2, BW, BH, 7);
+      ctx.fillStyle = s.color + '12'; ctx.fill();
+      ctx.strokeStyle = s.color + '60'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font = '600 9px Inter, sans-serif';
+      ctx.fillStyle = s.color;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const lines = s.label.split('\n');
+      lines.forEach((l, li) => ctx.fillText(l, s.x, LY + (li - (lines.length-1)/2) * 11));
+    });
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      if (p.si >= STAGES.length) { particles.splice(i, 1); continue; }
+      const tx = STAGES[p.si].x - BW/2 - 5;
+      if (p.x >= tx - 1.5) p.si++;
+      else p.x += 1.5;
+      const col = STAGES[Math.max(0, p.si - 1)].color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2);
+      ctx.fillStyle = col; ctx.fill();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate(); spawn();
+})();
+
+// ─── 4. The Race (race-canvas) ───────────────────────────────────────────────
+(function () {
+  const { ctx, W, H } = setupCanvas('race-canvas');
+  const MODELS = [
+    { name: 'Model A', score: 32, speed: 0.018, color: '#7c3aed' },
+    { name: 'Model B', score: 28, speed: 0.024, color: '#0891b2' },
+    { name: 'Model C', score: 41, speed: 0.012, color: '#f59e0b' },
+    { name: 'Model D', score: 19, speed: 0.030, color: '#16a34a' },
+    { name: 'Model E', score: 37, speed: 0.009, color: '#ec4899' },
+  ];
+  const MAX = 95;
+  let frame = 0;
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+    if (frame % 2 === 0) {
+      MODELS.forEach(m => { if (m.score < MAX) m.score = Math.min(MAX, m.score + m.speed + Math.random()*0.008); });
+    }
+
+    const sorted = [...MODELS].sort((a, b) => b.score - a.score);
+    const LBL = 76, BAR_MAX = W - LBL - 58;
+    const BAR_H = 26, GAP = 11;
+    const startY = (H - MODELS.length*(BAR_H+GAP)+GAP) / 2;
+
+    ctx.font = '600 9px Inter, sans-serif';
+    ctx.fillStyle = '#A1A1AA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('SWE-BENCH SCORE', W/2, 10);
+
+    sorted.forEach((m, rank) => {
+      const y = startY + rank*(BAR_H+GAP);
+      const barW = (m.score/MAX)*BAR_MAX;
+      const top = rank === 0;
+
+      ctx.font = '700 10px Inter, sans-serif';
+      ctx.fillStyle = top ? m.color : '#D4D4D8';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText('#'+(rank+1), 18, y+BAR_H/2);
+
+      ctx.font = (top ? '600' : '400')+' 11px Inter, sans-serif';
+      ctx.fillStyle = top ? '#18181B' : '#71717A';
+      ctx.textAlign = 'left';
+      ctx.fillText(m.name, 24, y+BAR_H/2);
+
+      rrect(ctx, LBL, y, BAR_MAX, BAR_H, 4);
+      ctx.fillStyle = '#F4F4F5'; ctx.fill();
+
+      if (barW > 4) {
+        rrect(ctx, LBL, y, barW, BAR_H, 4);
+        ctx.fillStyle = m.color+(top ? 'DD' : '66'); ctx.fill();
+      }
+
+      ctx.font = (top ? '700' : '500')+' 11px Inter, sans-serif';
+      ctx.fillStyle = top ? m.color : '#A1A1AA';
+      ctx.textAlign = 'left';
+      ctx.fillText(m.score.toFixed(1)+'%', LBL+barW+6, y+BAR_H/2);
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ─── 5. Defense Layers (fix-canvas) ─────────────────────────────────────────
 (function () {
   const { ctx, W, H } = setupCanvas('fix-canvas');
 

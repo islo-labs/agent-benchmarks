@@ -46,9 +46,13 @@ int main() {
             fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
             char *body = malloc(sz);
             fread(body, 1, sz, f); fclose(f);
+            const char *mime = "text/html; charset=utf-8";
+            if (strstr(path, ".svg"))  mime = "image/svg+xml";
+            else if (strstr(path, ".css")) mime = "text/css";
+            else if (strstr(path, ".js"))  mime = "application/javascript";
             char hdr[256];
             snprintf(hdr, sizeof(hdr),
-                "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %ld\r\n\r\n", sz);
+                "HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %ld\r\n\r\n", mime, sz);
             write(cfd, hdr, strlen(hdr));
             write(cfd, body, sz);
             free(body);
