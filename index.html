@@ -444,9 +444,28 @@
   </div>
 </section>
 
+<!-- ── Chapter 3: The Fix ── -->
+<section class="chapter flip" id="ch-fix">
+  <div class="chapter-inner">
+    <div class="reveal">
+      <div class="chapter-num">03 · The Fix</div>
+      <h2>You can't write your<br>way out of it.</h2>
+      <div class="chapter-body">
+        <p>The first instinct is to write harder tasks: rotate held-out test sets, obfuscate input names, generate tasks at evaluation time. It buys a few months — until the next model finds the pattern anyway.</p>
+        <p>What actually works is changing what the agent can and can't <em>do</em>. Three defenses that hold up: <strong>task isolation</strong> (the agent runs in a fresh sandbox and can never inspect test inputs), <strong>process verification</strong> (did it compute the answer or pattern-match to it?), and <strong>environmental controls</strong> (no filesystem access, network blocked, process isolated).</p>
+        <p>None of these require redesigning the benchmark. They require redesigning the arena.</p>
+      </div>
+    </div>
+    <div class="vis reveal">
+      <canvas id="fix-canvas" width="520" height="300"></canvas>
+      <span class="vis-label">Defense layers</span>
+    </div>
+  </div>
+</section>
+
 <!-- ── Chapter 4: Infrastructure (statement) ── -->
 <section class="statement" id="ch-infra">
-  <div class="statement-eyebrow reveal">03 · The Root Cause</div>
+  <div class="statement-eyebrow reveal">04 · The Root Cause</div>
   <h2 class="reveal">The benchmark is only as honest<br>as the <i>environment</i> it runs in.</h2>
   <p class="statement-sub reveal">Agents don't cheat because they're broken. They cheat because nothing stops them. Writing better tasks is an arms race you will lose.</p>
 
@@ -770,7 +789,138 @@ function rrect(ctx, x, y, w, h, r) {
   animate(); nextTask();
 })();
 
-// ─── 3. Reward Hacking ───────────────────────────────────────────────────────
+// ─── 3. Defense Layers (fix-canvas) ─────────────────────────────────────────
+(function () {
+  const { ctx, W, H } = setupCanvas('fix-canvas');
+
+  const GATES = [
+    { label: 'Task\nIsolation',   color: '#7c3aed', x: W * 0.30 },
+    { label: 'Process\nVerify',   color: '#0891b2', x: W * 0.52 },
+    { label: 'Env\nControl',      color: '#16a34a', x: W * 0.74 },
+  ];
+  const START_X = 24, GOAL_X = W - 20, LANE_Y = H * 0.42;
+  const HACK_Y  = H * 0.68;
+
+  const legit = [], attacks = [];
+  let frame = 0;
+
+  function spawnLegit() {
+    legit.push({ x: START_X, y: LANE_Y, blocked: false, alpha: 1 });
+  }
+  function spawnAttack() {
+    attacks.push({ x: START_X, y: HACK_Y, gateIdx: 0, blocked: false, bx: 0, by: 0, size: 4.5, alpha: 1 });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+    if (frame % 90 === 0) spawnLegit();
+    if (frame % 55 === 5) spawnAttack();
+
+    // Pipe line (legit path)
+    ctx.beginPath();
+    ctx.moveTo(START_X, LANE_Y);
+    ctx.lineTo(GOAL_X, LANE_Y);
+    ctx.strokeStyle = 'rgba(124,58,237,0.10)';
+    ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(START_X, LANE_Y);
+    ctx.lineTo(GOAL_X, LANE_Y);
+    ctx.strokeStyle = 'rgba(124,58,237,0.18)';
+    ctx.lineWidth = 1.5; ctx.setLineDash([4,6]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Hack path
+    ctx.beginPath();
+    ctx.moveTo(START_X, HACK_Y);
+    ctx.lineTo(GOAL_X, HACK_Y);
+    ctx.strokeStyle = 'rgba(220,38,38,0.07)';
+    ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(START_X, HACK_Y);
+    ctx.lineTo(GOAL_X, HACK_Y);
+    ctx.strokeStyle = 'rgba(220,38,38,0.14)';
+    ctx.lineWidth = 1.5; ctx.setLineDash([4,6]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Gates
+    GATES.forEach(g => {
+      // Gate bar
+      ctx.beginPath();
+      ctx.moveTo(g.x, LANE_Y - 32);
+      ctx.lineTo(g.x, HACK_Y + 22);
+      ctx.strokeStyle = g.color + '55';
+      ctx.lineWidth = 2; ctx.setLineDash([]); ctx.stroke();
+
+      // Gate dot on legit lane
+      ctx.beginPath(); ctx.arc(g.x, LANE_Y, 7, 0, Math.PI*2);
+      ctx.fillStyle = g.color + '22'; ctx.fill();
+      ctx.strokeStyle = g.color; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(g.x, LANE_Y, 3, 0, Math.PI*2);
+      ctx.fillStyle = g.color; ctx.fill();
+
+      // Label above
+      ctx.font = '500 9px Inter, sans-serif';
+      ctx.fillStyle = g.color;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      const lines = g.label.split('\n');
+      lines.forEach((l, i) => ctx.fillText(l, g.x, LANE_Y - 36 + i * 12));
+    });
+
+    // Goal
+    const pulse = Math.sin(frame * 0.06) * 0.5 + 0.5;
+    ctx.beginPath(); ctx.arc(GOAL_X - 8, LANE_Y, 13 + pulse * 3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(124,58,237,${0.06 + pulse*0.06})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(GOAL_X - 8, LANE_Y, 10, 0, Math.PI*2);
+    ctx.fillStyle = '#f5f3ff'; ctx.fill();
+    ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('✓', GOAL_X - 8, LANE_Y + 1);
+
+    // Labels
+    ctx.font = '600 9px Inter, sans-serif'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(124,58,237,0.5)'; ctx.textAlign = 'left';
+    ctx.fillText('VALID WORK', START_X + 4, LANE_Y - 20);
+    ctx.fillStyle = 'rgba(220,38,38,0.45)';
+    ctx.fillText('EXPLOIT ATTEMPT', START_X + 4, HACK_Y - 20);
+
+    // Legit particles
+    for (let i = legit.length - 1; i >= 0; i--) {
+      const p = legit[i];
+      p.x += 1.6;
+      if (p.x > GOAL_X + 20) { legit.splice(i, 1); continue; }
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, Math.PI*2);
+      ctx.fillStyle = '#7c3aed'; ctx.fill();
+    }
+
+    // Attack particles — blocked at first gate
+    for (let i = attacks.length - 1; i >= 0; i--) {
+      const p = attacks[i];
+      if (!p.blocked) {
+        p.x += 2.0;
+        const gate = GATES[0]; // blocked at first gate
+        if (p.x >= gate.x - 4) {
+          p.blocked = true;
+          p.bvx = -1.8; p.bvy = (Math.random() - 0.5) * 2.4;
+        }
+      } else {
+        p.bvx *= 0.88; p.bvy *= 0.88;
+        p.x += p.bvx; p.y += p.bvy;
+        p.size *= 0.96; p.alpha *= 0.94;
+        if (p.alpha < 0.05) { attacks.splice(i, 1); continue; }
+      }
+      ctx.globalAlpha = p.alpha;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fillStyle = '#dc2626'; ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  animate(); spawnLegit(); spawnAttack();
+})();
+
+// ─── 4. Reward Hacking ───────────────────────────────────────────────────────
 (function () {
   const { ctx, W, H } = setupCanvas('hack-canvas');
   let hackMode = false, normalScore = 0, hackScore = 0, hackTasksSolved = 0, frame = 0;
