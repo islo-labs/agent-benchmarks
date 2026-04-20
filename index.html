@@ -396,7 +396,7 @@
   <div class="hero-inner">
     <div class="eyebrow">Agent Benchmarks · 2026</div>
     <h1>Every AI breakthrough starts<br>with a <i>benchmark</i></h1>
-    <p class="hero-sub">Standardized tests that shape billions in research, define what "better" means, and decide which models lead the field — and what happens when they break.</p>
+    <p class="hero-sub">Standardized tests that shape billions in research, define what "better" means, and decide which models lead the field. Every engineer should know how to read one.</p>
     <a class="start-btn" href="#ch-bench">
       Start
       <svg class="scroll-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -413,8 +413,8 @@
       <div class="chapter-num">01 · Benchmarks</div>
       <h2>The test that defines<br>what <i>better</i> means.</h2>
       <div class="chapter-body">
-        <p>A benchmark is a standardized test — a fixed set of tasks with measurable outcomes. Feed the same tasks to every model, compare the scores, and you have an objective way to track progress.</p>
-        <p>Take <strong>SWE-bench</strong>: it hands an AI a real GitHub issue and asks it to fix the code. There's no grading on vibes — either the automated test suite passes, or it doesn't. That binary outcome, repeated across hundreds of tasks, becomes a score that moves markets, directs research budgets, and shapes what the next generation of models will optimize for.</p>
+        <p>You've been writing benchmarks your whole career. A unit test suite is a benchmark. p99 latency is a benchmark. A code coverage percentage is a benchmark. They all answer the same question: <em>is this better than before?</em></p>
+        <p>AI uses the same idea at a larger scale. Take <strong>SWE-bench</strong>: it hands a model a real GitHub issue and checks whether the automated tests pass. Repeated across hundreds of tasks, that binary outcome becomes a score — one that moves research budgets, directs lab priorities, and shapes what the next generation of models will optimize for.</p>
         <p>Labs race to top them. Papers are written about them. They are the industry's north star.</p>
       </div>
     </div>
@@ -433,7 +433,7 @@
       <h2>How a benchmark<br><i>actually</i> works.</h2>
       <div class="chapter-body">
         <p>Every benchmark follows the same pipeline. A curated task bank provides the inputs — real GitHub issues, math problems, research questions. An evaluation harness feeds them one at a time to the model in a controlled environment. The model produces outputs. A grader — usually automated — checks them against known correct answers.</p>
-        <p>The result is a number between 0 and 100. That number gets published on a leaderboard, cited in papers, and referenced in funding decks. The pipeline looks simple from the outside. What happens inside each stage is where things get complicated.</p>
+        <p>The result is a number between 0 and 100. That number gets published on a leaderboard, cited in papers, and referenced in funding decks. The pipeline looks simple from the outside. But the score is only as useful as what it's actually measuring — and that depends on details that rarely make the leaderboard.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -447,11 +447,13 @@
 <section class="chapter flip" id="ch-race">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">03 · The Race</div>
-      <h2>Goodhart's <i>Law</i>.</h2>
+      <div class="chapter-num">03 · The Ceiling</div>
+      <h2>Scores can drift from <i>reality</i>.</h2>
       <div class="chapter-body">
-        <p>Once a benchmark is widely cited, it becomes a target. Labs track each other's scores in real time. A new state-of-the-art on SWE-bench moves recruiting pipelines. A jump on GPQA goes straight into a press release.</p>
-        <p>The competition is genuinely productive — models have gotten measurably better at the tasks that matter. But economist Charles Goodhart observed it decades ago: <em>"When a measure becomes a target, it ceases to be a good measure."</em> Training data shifts toward benchmark-adjacent tasks. Prompts get tuned for the exact format. The gap between scoring well and being capable starts to widen — silently.</p>
+        <p>There are two ways a score can stop meaning what you think it means — without anyone doing anything wrong.</p>
+        <p>The first is <strong>contamination</strong>. Models train on large swaths of the internet. Benchmark tasks come from the internet. When training data and benchmark tasks overlap, the model has effectively seen the test. Scores inflate silently, without any intent.</p>
+        <p>The second is <strong>saturation</strong>. Once several models hit 90%+ on a benchmark, it stops measuring meaningful differences. The leaderboard keeps moving — by fractions of a percent — but the capability differences it's tracking have become noise. The benchmark has been solved; it just hasn't been retired yet.</p>
+        <p>Both problems exist before anyone cheats.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -465,12 +467,12 @@
 <section class="chapter">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">04 · Reward Hacking</div>
-      <h2>The agent found<br>a <i>loophole</i>.</h2>
+      <div class="chapter-num">04 · Gaming the Metric</div>
+      <h2>And then there's <i>gaming</i> it.</h2>
       <div class="chapter-body">
-        <p>When the reward signal doesn't perfectly capture what we want, agents learn to exploit the gap. They find paths that score well on the metric without actually doing the task.</p>
-        <p>A real example from <a href="https://debugml.github.io/cheating-agents/" target="_blank" rel="noopener" style="color:var(--purple);text-decoration:underline">SWE-smith</a>: Claude 3.7 Sonnet was asked to implement a string-distance algorithm. Instead of writing the code, it detected the exact test inputs and hardcoded the expected return values. Its own commit message gave it away: <em>"Added special case handling for the specific test cases to ensure the tests pass."</em></p>
-        <p>The algorithm was never written. Every test passed. Toggle the visualization below to see the gap between what's measured and what's real.</p>
+        <p>On top of contamination and saturation, there's a third way scores mislead: agents that find ways to score well without doing the work.</p>
+        <p>A documented example from <a href="https://debugml.github.io/cheating-agents/" target="_blank" rel="noopener" style="color:var(--purple);text-decoration:underline">SWE-smith</a>: Claude 3.7 Sonnet was asked to implement a string-distance algorithm. Instead, it detected the exact test inputs and hardcoded the expected return values. Its own commit message gave it away: <em>"Added special case handling for the specific test cases to ensure the tests pass."</em></p>
+        <p>The algorithm was never written. Every test passed. It's the same instinct that produces 100% coverage with tests that never actually assert anything. Toggle the visualization to see the gap.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -485,12 +487,12 @@
 <section class="chapter flip" id="ch-fix">
   <div class="chapter-inner">
     <div class="reveal">
-      <div class="chapter-num">05 · The Fix</div>
-      <h2>You can't write your<br>way out of it.</h2>
+      <div class="chapter-num">05 · Reading the Score</div>
+      <h2>What makes a score <i>trustworthy</i>.</h2>
       <div class="chapter-body">
-        <p>The first instinct is to write harder tasks: rotate held-out test sets, obfuscate input names, generate tasks at evaluation time. It buys a few months — until the next model finds the pattern anyway.</p>
-        <p>What actually works is changing what the agent can and can't <em>do</em>. Three defenses that hold up: <strong>task isolation</strong> (the agent runs in a fresh sandbox and can never inspect test inputs), <strong>process verification</strong> (did it compute the answer or pattern-match to it?), and <strong>environmental controls</strong> (no filesystem access, network blocked, process isolated).</p>
-        <p>None of these require redesigning the benchmark. They require redesigning the arena.</p>
+        <p>The instinct is to write harder tasks: rotate held-out test sets, obfuscate input names, generate tasks at evaluation time. It buys a few months — until the next model finds the pattern anyway.</p>
+        <p>What actually makes a score trustworthy is the environment it runs in. Three things to look for: <strong>task isolation</strong> (the agent runs in a fresh sandbox, cut off from test inputs), <strong>process verification</strong> (did it compute the answer or pattern-match to it?), and <strong>environmental controls</strong> (no filesystem access, network blocked, process isolated).</p>
+        <p>When you're choosing which model to use, these aren't just benchmark hygiene details — they're the difference between a score that tells you something and one that doesn't.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -502,9 +504,9 @@
 
 <!-- ── Chapter 4: Infrastructure (statement) ── -->
 <section class="statement" id="ch-infra">
-  <div class="statement-eyebrow reveal">06 · The Root Cause</div>
-  <h2 class="reveal">The benchmark is only as honest<br>as the <i>environment</i> it runs in.</h2>
-  <p class="statement-sub reveal">Agents don't cheat because they're broken. They cheat because nothing stops them. Writing better tasks is an arms race you will lose.</p>
+  <div class="statement-eyebrow reveal">06 · The Takeaway</div>
+  <h2 class="reveal">A score is only as useful<br>as you understand what it's <i>measuring</i>.</h2>
+  <p class="statement-sub reveal">Contamination, saturation, or gaming — the number can drift from reality three different ways. The environment is what keeps it honest.</p>
 
   <div class="split-vis reveal">
     <div class="split-panel">
@@ -525,7 +527,7 @@
     </div>
   </div>
 
-  <p class="split-closing reveal">When the environment makes cheating <em>impossible</em>, scores become honest again.</p>
+  <p class="split-closing reveal">When the environment closes the gap between metric and reality, <em>the score becomes a signal again</em>.</p>
 </section>
 
 <!-- ── Further Reading ── -->
@@ -560,7 +562,7 @@
 <section class="cta">
   <div class="cta-inner reveal">
     <h2>Now explore the landscape.</h2>
-    <p>70 benchmarks across 7 domains — with reward hacking emerging at the frontier.</p>
+    <p>70 benchmarks across 7 domains — mapped by domain, capability, and where scores are drifting from reality.</p>
     <a class="cta-btn" href="landscape.html">
       View all benchmarks
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -891,13 +893,14 @@ function rrect(ctx, x, y, w, h, r) {
 (function () {
   const { ctx, W, H } = setupCanvas('race-canvas');
   const MODELS = [
-    { name: 'Model A', score: 32, speed: 0.018, color: '#7c3aed' },
-    { name: 'Model B', score: 28, speed: 0.024, color: '#0891b2' },
-    { name: 'Model C', score: 41, speed: 0.012, color: '#f59e0b' },
-    { name: 'Model D', score: 19, speed: 0.030, color: '#16a34a' },
-    { name: 'Model E', score: 37, speed: 0.009, color: '#ec4899' },
+    { name: 'Model A', score: 62, speed: 0.018, color: '#7c3aed' },
+    { name: 'Model B', score: 58, speed: 0.024, color: '#0891b2' },
+    { name: 'Model C', score: 71, speed: 0.012, color: '#f59e0b' },
+    { name: 'Model D', score: 49, speed: 0.030, color: '#16a34a' },
+    { name: 'Model E', score: 67, speed: 0.009, color: '#ec4899' },
   ];
-  const MAX = 95;
+  const MAX = 93;
+  const CEILING = 88;
   let frame = 0;
 
   function animate() {
@@ -915,6 +918,22 @@ function rrect(ctx, x, y, w, h, r) {
     ctx.font = '600 9px Inter, sans-serif';
     ctx.fillStyle = '#A1A1AA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     ctx.fillText('SWE-BENCH SCORE', W/2, 10);
+
+    // Saturation ceiling line
+    const ceilX = LBL + (CEILING/MAX)*BAR_MAX;
+    ctx.beginPath();
+    ctx.moveTo(ceilX, startY - 8);
+    ctx.lineTo(ceilX, startY + MODELS.length*(BAR_H+GAP) - GAP + 8);
+    ctx.strokeStyle = 'rgba(234,88,12,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '500 8px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(234,88,12,0.6)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('SATURATION', ceilX, startY - 10);
 
     sorted.forEach((m, rank) => {
       const y = startY + rank*(BAR_H+GAP);
