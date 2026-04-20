@@ -441,7 +441,7 @@
       <h2>How a benchmark<br><i>actually</i> works.</h2>
       <div class="chapter-body">
         <p>Every benchmark follows the same pipeline. A task bank provides the inputs — real GitHub issues, math problems, research questions. A test runner feeds them to the model one at a time. The model produces outputs. A grader — usually automated — checks them against known correct answers.</p>
-        <p>The result is a number between 0 and 100. That number gets published on a leaderboard, cited in papers, and referenced in funding decks. The pipeline looks simple from the outside. But the score is only as useful as what it's actually measuring — and that depends on details that rarely make the leaderboard.</p>
+        <p>The result is a number between 0 and 100. That number gets published on a leaderboard, cited in papers, and referenced in funding decks. The pipeline looks simple from the outside. But the number is only as good as what's behind it — and that depends on details that rarely make the leaderboard.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -513,8 +513,8 @@
 <!-- ── Chapter 4: Infrastructure (statement) ── -->
 <section class="statement" id="ch-infra">
   <div class="statement-eyebrow reveal">06 · The Takeaway</div>
-  <h2 class="reveal">A score is only as useful<br>as you understand what it's <i>measuring</i>.</h2>
-  <p class="statement-sub reveal">Contamination, saturation, or gaming — the number can drift from reality three different ways. The environment is what keeps it honest.</p>
+  <h2 class="reveal">The leaderboard<br>won't tell you <i>this</i>.</h2>
+  <p class="statement-sub reveal">Three problems, three different fixes. Contamination is a training data problem. Saturation is a benchmark lifecycle problem. Gaming is an environment problem — and the only one you can actually control at eval time.</p>
 
   <div class="split-vis reveal">
     <div class="split-panel">
