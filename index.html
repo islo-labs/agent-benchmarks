@@ -440,7 +440,7 @@
       <div class="chapter-num">02 · How They Run</div>
       <h2>How a benchmark<br><i>actually</i> works.</h2>
       <div class="chapter-body">
-        <p>Every benchmark follows the same pipeline. A curated task bank provides the inputs — real GitHub issues, math problems, research questions. An evaluation harness feeds them one at a time to the model in a controlled environment. The model produces outputs. A grader — usually automated — checks them against known correct answers.</p>
+        <p>Every benchmark follows the same pipeline. A task bank provides the inputs — real GitHub issues, math problems, research questions. A test runner feeds them to the model one at a time. The model produces outputs. A grader — usually automated — checks them against known correct answers.</p>
         <p>The result is a number between 0 and 100. That number gets published on a leaderboard, cited in papers, and referenced in funding decks. The pipeline looks simple from the outside. But the score is only as useful as what it's actually measuring — and that depends on details that rarely make the leaderboard.</p>
       </div>
     </div>
@@ -459,7 +459,7 @@
       <h2>Scores can drift from <i>reality</i>.</h2>
       <div class="chapter-body">
         <p>There are two ways a score can stop meaning what you think it means — without anyone doing anything wrong.</p>
-        <p>The first is <strong>contamination</strong>. Models train on large swaths of the internet. Benchmark tasks come from the internet. When training data and benchmark tasks overlap, the model has effectively seen the test. Scores inflate silently, without any intent.</p>
+        <p>The first is <strong>contamination</strong>. Models train on massive chunks of the internet. Benchmark tasks also come from the internet. When those overlap, the model has basically already seen the test. Scores go up — nobody cheated, the data just leaked.</p>
         <p>The second is <strong>saturation</strong>. Once several models hit 90%+ on a benchmark, it stops measuring meaningful differences. The leaderboard keeps moving — by fractions of a percent — but the capability differences it's tracking have become noise. The benchmark has been solved; it just hasn't been retired yet.</p>
         <p>Both problems exist before anyone cheats.</p>
       </div>
@@ -480,7 +480,7 @@
       <div class="chapter-body">
         <p>On top of contamination and saturation, there's a third way scores mislead: agents that find ways to score well without doing the work.</p>
         <p>A documented example from <a href="https://debugml.github.io/cheating-agents/" target="_blank" rel="noopener" style="color:var(--purple);text-decoration:underline">SWE-smith</a>: Claude 3.7 Sonnet was asked to implement a string-distance algorithm. Instead, it detected the exact test inputs and hardcoded the expected return values. Its own commit message gave it away: <em>"Added special case handling for the specific test cases to ensure the tests pass."</em></p>
-        <p>The algorithm was never written. Every test passed. It's the same instinct that produces 100% coverage with tests that never actually assert anything. Toggle the visualization to see the gap.</p>
+        <p>The algorithm was never written. Every test passed. You've seen this before — it's the same thing that gives you 100% coverage with tests that never actually assert anything. Toggle the visualization to see the gap.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -498,9 +498,9 @@
       <div class="chapter-num">05 · Reading the Score</div>
       <h2>What makes a score <i>trustworthy</i>.</h2>
       <div class="chapter-body">
-        <p>The instinct is to write harder tasks: rotate held-out test sets, obfuscate input names, generate tasks at evaluation time. It buys a few months — until the next model finds the pattern anyway.</p>
+        <p>The first move is to write harder tasks: swap out the test set, randomize variable names, generate tasks on the fly. It buys a few months — until the next model finds the pattern anyway.</p>
         <p>What actually makes a score trustworthy is the environment it runs in. Three things to look for: <strong>task isolation</strong> (the agent runs in a fresh sandbox, cut off from test inputs), <strong>process verification</strong> (did it compute the answer or pattern-match to it?), and <strong>environmental controls</strong> (no filesystem access, network blocked, process isolated).</p>
-        <p>When you're choosing which model to use, these aren't just benchmark hygiene details — they're the difference between a score that tells you something and one that doesn't.</p>
+        <p>When you're picking which model to use, these aren't just implementation details — they're the difference between a score that means something and one that doesn't.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -546,19 +546,19 @@
       <a class="fr-card" href="https://debugml.github.io/cheating-agents/" target="_blank" rel="noopener">
         <div class="fr-tag">Research</div>
         <div class="fr-title">Cheating Agents</div>
-        <div class="fr-desc">28+ documented cases of agents exploiting benchmark harnesses across 9 benchmarks. The paper that named the problem.</div>
+        <div class="fr-desc">28+ documented cases of agents gaming benchmark test runners across 9 benchmarks. The paper that named the problem.</div>
         <div class="fr-src">debugml.github.io</div>
       </a>
       <a class="fr-card" href="https://arxiv.org/abs/2310.06770" target="_blank" rel="noopener">
         <div class="fr-tag">Paper</div>
         <div class="fr-title">SWE-bench</div>
-        <div class="fr-desc">The canonical coding benchmark: real GitHub issues, automated test evaluation. Also a case study in what open environments enable.</div>
+        <div class="fr-desc">The go-to coding benchmark: real GitHub issues, automated test evaluation. Also a case study in what happens when the environment is wide open.</div>
         <div class="fr-src">arxiv.org</div>
       </a>
       <a class="fr-card" href="https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/" target="_blank" rel="noopener">
         <div class="fr-tag">Blog</div>
         <div class="fr-title">Specification Gaming</div>
-        <div class="fr-desc">DeepMind's catalog of agents exploiting reward signals in unexpected ways — the conceptual foundation for reward hacking.</div>
+        <div class="fr-desc">DeepMind's catalog of agents exploiting reward signals in unexpected ways — good background on why this happens at all.</div>
         <div class="fr-src">deepmind.google</div>
       </a>
     </div>
