@@ -611,22 +611,22 @@
 <!-- ── Opus 4.7 callout ── -->
 <section class="example-callout">
   <div class="example-inner">
-    <div class="example-kicker">Real example · April 2026</div>
+    <div class="example-kicker">Real example · Opus 4.7 release · April 2026</div>
     <div class="example-grid">
       <div class="example-headline">
-        <h3>When public benchmarks saturate, labs stop using them.</h3>
-        <p>Opus 4.7 dropped this week. Look at what Anthropic led with.</p>
+        <h3>How to read a model release.</h3>
+        <p>Anthropic published scores on 12 benchmarks this week. The numbers look great. Here's what they actually tell you.</p>
       </div>
       <div class="example-facts">
         <div class="example-fact">
-          <span class="fact-num">+13%</span>
-          <span class="fact-lbl">on an internal 93-task coding benchmark<br><em>not on any public leaderboard</em></span>
+          <span class="fact-num">+3 pts</span>
+          <span class="fact-lbl">GPQA Diamond: Opus 4.6 scored 91.3%, Opus 4.7 scores 94.2%<br><em>Both are in solved territory. The gap is noise.</em></span>
         </div>
         <div class="example-fact">
-          <span class="fact-num">98.5%</span>
-          <span class="fact-lbl">on a partner's visual-acuity test<br><em>not on any public leaderboard</em></span>
+          <span class="fact-num">−4.4 pts</span>
+          <span class="fact-lbl">BrowseComp: Opus 4.7 dropped from 83.7% → 79.3%<br><em>GPT-5.4 leads at 89.3%. The release didn't lead with this.</em></span>
         </div>
-        <p class="example-note">That's not suspicious. It's what happens when the public ones get solved — labs build new ones you can't independently verify yet.</p>
+        <p class="example-note">Saturated benchmarks don't disappear from release notes — they just stop being informative. Knowing which category a benchmark is in is how you read past the headline.</p>
       </div>
     </div>
   </div>
@@ -761,7 +761,7 @@
 <script>
 // ─── Tweet button ────────────────────────────────────────────────────────────
 (function() {
-  const text = "Opus 4.7 just dropped. The headline benchmark numbers? Internal tests you can't look up. There's a reason for that — and it's actually interesting:";
+  const text = "Opus 4.7 dropped this week. GPQA Diamond gap vs 4.6: 3 points. BrowseComp: Opus 4.7 regressed while GPT-5.4 leads. The release didn't lead with that. Here's how to read benchmark releases:";
   const url  = "https://agent-benchmarks.com";
   const href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
 
