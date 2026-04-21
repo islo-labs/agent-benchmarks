@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Agent Benchmarks</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple:    #7c3aed;
+      --purple-lt: #8b5cf6;
+      --p50:       #f5f3ff;
+      --p100:      #ede9fe;
+      --p200:      #ddd6fe;
+      --border:    #E8E8EC;
+      --text:      #18181B;
+      --muted:     #71717A;
+      --faint:     #A1A1AA;
+      --bg:        #FAFAFA;
+      --white:     #FFFFFF;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--white);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: var(--purple); }
+    a:hover { text-decoration: underline; }
+
+    nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-link { font-size: 13px; font-weight: 500; color: var(--faint); transition: color .15s; }
+    .nav-link:hover { color: var(--text); text-decoration: none; }
+
+    .page {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 32px 120px;
+    }
+
+    .page-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--purple);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .updated {
+      font-size: 13px;
+      color: var(--faint);
+      margin-bottom: 56px;
+    }
+
+    h2 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text);
+      margin: 48px 0 12px;
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 14px;
+    }
+
+    ul {
+      margin: 0 0 14px 0;
+      padding-left: 20px;
+    }
+
+    li {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 6px;
+    }
+
+    .callout {
+      background: var(--p50);
+      border: 1px solid var(--p200);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .callout p { margin: 0; font-size: 14px; }
+
+    footer { border-top: 1px solid var(--border); background: var(--white); }
+    .footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .footer-l { font-size: 12px; font-weight: 600; color: var(--purple); }
+    .footer-r { font-size: 12px; color: var(--faint); display: flex; align-items: center; gap: 12px; }
+    .footer-r a { color: var(--purple); }
+    .built-with {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 100px;
+      border: 1px solid var(--p200); background: var(--p50);
+      font-size: 11px; font-weight: 600; color: var(--purple);
+      transition: background .15s, box-shadow .15s;
+      text-decoration: none;
+    }
+    .built-with:hover { background: var(--p100); box-shadow: 0 2px 8px rgba(124,58,237,.12); }
+
+    @media (max-width: 760px) {
+      .page { padding: 48px 20px 80px; }
+      .nav-inner { padding: 0 20px; }
+      .footer-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-link" href="index.html">← Back</a>
+    <a class="nav-link" href="landscape.html">All benchmarks →</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">Legal</div>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated April 21, 2026</p>
+
+  <p>Agent Benchmarks is a free, public resource. We don't have accounts, we don't collect form submissions, and we don't sell data. This page explains what we do collect and who helps us do it.</p>
+
+  <h2>What we collect</h2>
+  <p>When you visit this site, we automatically collect standard usage data:</p>
+  <ul>
+    <li>Pages visited and time spent</li>
+    <li>Referring URL and UTM parameters</li>
+    <li>Browser type, OS, and device category</li>
+    <li>IP address (anonymized)</li>
+    <li>Clicks on outbound links</li>
+  </ul>
+  <p>We do not collect names, email addresses, or any information you type — because there's nowhere to type anything.</p>
+
+  <h2>Analytics — PostHog</h2>
+  <p>We use <a href="https://posthog.com" target="_blank" rel="noopener">PostHog</a> to understand how people use the site — which sections get read, which links get clicked, where people drop off. PostHog processes data on US servers. You can review their privacy policy at <a href="https://posthog.com/privacy" target="_blank" rel="noopener">posthog.com/privacy</a>.</p>
+
+  <h2>Visitor identification — RB2B</h2>
+  <p>We use <a href="https://www.rb2b.com" target="_blank" rel="noopener">RB2B</a> to identify companies visiting the site. RB2B may use cookies and similar technologies to associate your visit with other information — including your email address — held by RB2B or its data partners.</p>
+
+  <div class="callout">
+    <p>When you visit this site, cookies and similar technologies may be used by our online data partners or vendors to associate these activities with other personal information they or others have about you, including by association with your email. We (or service providers on our behalf) may then send communications and marketing to these email addresses. You may opt out of receiving this advertising by visiting <a href="https://app.retention.com/optout" target="_blank" rel="noopener">app.retention.com/optout</a>.</p>
+  </div>
+
+  <p>RB2B's company identification is limited to US visitors only.</p>
+
+  <h2>Cookies</h2>
+  <p>PostHog and RB2B set cookies to track sessions and identify returning visitors. You can clear or block cookies in your browser settings at any time. The site works fine without them.</p>
+
+  <h2>Data sharing</h2>
+  <p>We don't sell your data. We share data only with the service providers listed above (PostHog, RB2B), and only to operate this site.</p>
+
+  <h2>Contact</h2>
+  <p>Questions? Reach us at <a href="mailto:hello@islo.dev">hello@islo.dev</a>.</p>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-l">Agent benchmarks 2026</span>
+    <span class="footer-r">
+      <a href="https://islo.dev?utm_source=agent-benchmarks" target="_blank" rel="noopener" class="built-with">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L1.5 5.5H4.5L3 9L8.5 4H5.5L7 1H5Z" fill="currentColor"/></svg>
+        Built with islo
+      </a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
