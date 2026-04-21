@@ -346,6 +346,26 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 20px rgba(124,58,237,.35);
     }
+    .tweet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: var(--white);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      transition: border-color .15s, box-shadow .15s, transform .12s;
+    }
+    .tweet-btn:hover {
+      border-color: #aaa;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); background: var(--white); }
@@ -478,7 +498,7 @@
         <p>There are two ways a score drifts from reality before anyone cheats.</p>
         <p>The first is <strong>contamination</strong>. Models train on massive chunks of the internet. Benchmark tasks also come from the internet. When those overlap, the model has basically already seen the test. Scores go up. The data just leaked.</p>
         <p>The second is <strong>saturation</strong>. Once several models hit 90%+ on a benchmark, it stops measuring meaningful differences. The leaderboard keeps moving — by fractions of a percent — but the capability differences it's tracking have become noise. The benchmark has been solved; it just hasn't been retired yet.</p>
-        <p>Both problems exist before anyone cheats.</p>
+        <p>Both problems exist before anyone cheats. And they have a predictable consequence: when public benchmarks stop being informative, labs start building internal ones. Opus 4.7's release this week is a concrete example — Anthropic's headline numbers are a 13% lift on their own 93-task internal coding benchmark and 98.5% on a partner's visual-acuity test. Neither is on a public leaderboard you can look up. That's not suspicious. It's what happens when the public ones get solved.</p>
       </div>
     </div>
     <div class="vis reveal">
@@ -588,12 +608,18 @@
   <div class="cta-inner reveal">
     <h2>Now explore the landscape.</h2>
     <p>70 benchmarks across 7 domains — mapped by domain, capability, and where scores are drifting from reality.</p>
-    <a class="cta-btn" href="landscape.html">
-      View all benchmarks
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>
+    <div class="cta-actions">
+      <a class="cta-btn" href="landscape.html">
+        View all benchmarks
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a class="tweet-btn" id="tweet-btn" href="#" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Share on X
+      </a>
+    </div>
   </div>
 </section>
 
@@ -609,6 +635,14 @@
 </footer>
 
 <script>
+// ─── Tweet button ────────────────────────────────────────────────────────────
+(function() {
+  const text = "Opus 4.7 just dropped. The headline benchmark numbers? Internal tests you can't look up. There's a reason for that — and it's actually interesting:";
+  const url  = "https://agent-benchmarks.com";
+  document.getElementById('tweet-btn').href =
+    "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
+})();
+
 // ─── GSAP scroll reveals ─────────────────────────────────────────────────────
 gsap.registerPlugin(ScrollTrigger);
 gsap.utils.toArray('.reveal').forEach(el => {
