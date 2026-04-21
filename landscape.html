@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agent Benchmark Landscape — islo.dev</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="init bs ws ge fs capture De calculateEventProperties $s identify alias people.set people.set_once set register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId setPersonPropertiesForFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_yrFxxXfCdc7eM9VLDDeZCpJfdoZLua4umd2fm5af73n9', { api_host: 'https://us.i.posthog.com' });
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -550,6 +554,7 @@
     <span class="footer-l">Agent benchmarks 2026</span>
     <span class="footer-r">
       <a href="https://docs.google.com/spreadsheets/d/1mJbiASPm32DDNzEnV6eDGwpEf3FlMUe5dhkZmFjjSoo" target="_blank" rel="noopener">Harbor Tracker</a>
+      · Built by <a href="https://islo.dev?ref=agent-benchmarks" target="_blank" rel="noopener" id="islo-link">islo.dev</a>
     </span>
   </div>
 </footer>
@@ -773,6 +778,10 @@ render();
     if (el) { el.style.setProperty('--spot-x', '-9999px'); el.style.setProperty('--spot-y', '-9999px'); }
   });
 })();
+
+document.getElementById('islo-link').addEventListener('click', () => {
+  posthog.capture('islo_link_clicked', { page: 'landscape' });
+});
 </script>
 </body>
 </html>
