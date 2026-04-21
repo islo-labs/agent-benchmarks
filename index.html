@@ -68,6 +68,16 @@
     .nav-brand { font-size: 13px; font-weight: 700; color: var(--purple); letter-spacing: -.01em; }
     .nav-link  { font-size: 13px; font-weight: 500; color: var(--faint); transition: color .15s; }
     .nav-link:hover { color: var(--text); }
+    .nav-tweet {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--white);
+      font-size: 12px; font-weight: 600; color: var(--text);
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s ease, background .15s, box-shadow .15s;
+    }
+    .nav-tweet.visible { opacity: 1; pointer-events: auto; }
+    .nav-tweet:hover { background: var(--bg); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
 
     /* ── Hero ── */
     .hero {
@@ -317,7 +327,93 @@
     .fr-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
     .fr-src { font-size: 11px; color: var(--faint); }
 
-/* ── CTA ── */
+/* ── Example callout ── */
+    .example-callout {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--p50);
+      padding: 56px 32px;
+    }
+    .example-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .example-kicker {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--purple);
+      margin-bottom: 28px;
+    }
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+    .example-headline h3 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .example-headline p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .example-facts {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .example-fact {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--p200);
+    }
+    .example-fact:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .fact-num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: var(--purple);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .fact-lbl {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .fact-lbl em {
+      display: block;
+      font-style: normal;
+      font-size: 11px;
+      color: var(--faint);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .example-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      border-left: 2px solid var(--p200);
+      padding-left: 14px;
+      margin-top: 4px;
+    }
+    @media (max-width: 760px) {
+      .example-callout { padding: 48px 20px; }
+      .example-grid { grid-template-columns: 1fr; gap: 36px; }
+    }
+
+    /* ── CTA ── */
     .cta {
       padding: 110px 32px;
       text-align: center;
@@ -346,6 +442,26 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 20px rgba(124,58,237,.35);
     }
+    .tweet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: var(--white);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      transition: border-color .15s, box-shadow .15s, transform .12s;
+    }
+    .tweet-btn:hover {
+      border-color: #aaa;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); background: var(--white); }
@@ -403,6 +519,10 @@
 <nav>
   <div class="nav-inner">
     <a class="nav-link" href="landscape.html">All benchmarks →</a>
+    <a id="nav-tweet" href="#" target="_blank" rel="noopener" class="nav-tweet">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Share
+    </a>
   </div>
 </nav>
 
@@ -484,6 +604,30 @@
     <div class="vis reveal">
       <canvas id="race-canvas" width="520" height="300"></canvas>
       <span class="vis-label">Benchmark leaderboard</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Opus 4.7 callout ── -->
+<section class="example-callout">
+  <div class="example-inner">
+    <div class="example-kicker">Real example · April 2026</div>
+    <div class="example-grid">
+      <div class="example-headline">
+        <h3>When public benchmarks saturate, labs stop using them.</h3>
+        <p>Opus 4.7 dropped this week. Look at what Anthropic led with.</p>
+      </div>
+      <div class="example-facts">
+        <div class="example-fact">
+          <span class="fact-num">+13%</span>
+          <span class="fact-lbl">on an internal 93-task coding benchmark<br><em>not on any public leaderboard</em></span>
+        </div>
+        <div class="example-fact">
+          <span class="fact-num">98.5%</span>
+          <span class="fact-lbl">on a partner's visual-acuity test<br><em>not on any public leaderboard</em></span>
+        </div>
+        <p class="example-note">That's not suspicious. It's what happens when the public ones get solved — labs build new ones you can't independently verify yet.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -588,12 +732,18 @@
   <div class="cta-inner reveal">
     <h2>Now explore the landscape.</h2>
     <p>70 benchmarks across 7 domains — mapped by domain, capability, and where scores are drifting from reality.</p>
-    <a class="cta-btn" href="landscape.html">
-      View all benchmarks
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>
+    <div class="cta-actions">
+      <a class="cta-btn" href="landscape.html">
+        View all benchmarks
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a class="tweet-btn" id="tweet-btn" href="#" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Share on X
+      </a>
+    </div>
   </div>
 </section>
 
@@ -609,6 +759,27 @@
 </footer>
 
 <script>
+// ─── Tweet button ────────────────────────────────────────────────────────────
+(function() {
+  const text = "Opus 4.7 just dropped. The headline benchmark numbers? Internal tests you can't look up. There's a reason for that — and it's actually interesting:";
+  const url  = "https://agent-benchmarks.com";
+  const href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
+
+  document.getElementById('tweet-btn').href = href;
+
+  const navTweet = document.getElementById('nav-tweet');
+  navTweet.href = href;
+
+  const ch3 = document.getElementById('ch-race');
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) {
+      navTweet.classList.add('visible');
+      observer.disconnect();
+    }
+  }, { threshold: 0 });
+  observer.observe(ch3);
+})();
+
 // ─── GSAP scroll reveals ─────────────────────────────────────────────────────
 gsap.registerPlugin(ScrollTrigger);
 gsap.utils.toArray('.reveal').forEach(el => {
