@@ -526,8 +526,8 @@
       <button class="ftag active" data-sat="all">All</button>
       <button class="ftag" data-sat="low">Frontier &lt;20%</button>
       <button class="ftag" data-sat="somewhat">20–50%</button>
-      <button class="ftag" data-sat="almost">50–80%</button>
-      <button class="ftag" data-sat="full">Solved &gt;80% ✓</button>
+      <button class="ftag" data-sat="almost">50–90%</button>
+      <button class="ftag" data-sat="full">Solved &gt;90% ✓</button>
     </div>
   </div>
 </div>
@@ -539,9 +539,9 @@
     <span class="sat-legend-sep">·</span>
     <span class="sat-legend-item sat-somewhat">20–50%</span>
     <span class="sat-legend-sep">·</span>
-    <span class="sat-legend-item sat-almost">50–80%</span>
+    <span class="sat-legend-item sat-almost">50–90%</span>
     <span class="sat-legend-sep">·</span>
-    <span class="sat-legend-item sat-full">Solved &gt;80%</span>
+    <span class="sat-legend-item sat-full">Solved &gt;90%</span>
     <span class="sat-legend-sep">·</span>
     <span class="sat-legend-item" style="color:var(--faint)">— Unknown</span>
   </div>
@@ -590,8 +590,8 @@ const CATS = [
 const SAT_LABEL = {
   'low':      '< 20%',
   'somewhat': '20–50%',
-  'almost':   '50–80%',
-  'full':     '> 80%',
+  'almost':   '50–90%',
+  'full':     '> 90%',
   'hard':     '—',
 };
 
@@ -602,10 +602,10 @@ const TYPE_LABEL = {
 };
 
 const BENCHMARKS = [
-  { name:"SWE-bench Verified",        cat:"coding",       sat:"full",     type:"agentic",     tags:"swe debugging python",         link:"https://swebench.com" },
+  { name:"SWE-bench Verified",        cat:"coding",       sat:"almost",   type:"agentic",     tags:"swe debugging python",         link:"https://swebench.com" },
   { name:"SWE-Lancer",                cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe development freelance",    link:"https://openai.com/index/swe-lancer" },
-  { name:"SWE-Bench Pro",             cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe industrial repo",          link:"https://scale.com/research/swe_bench_pro" },
-  { name:"SWE-Bench Multilingual",    cat:"coding",       sat:"full",     type:"agentic",     tags:"swe multilingual",             link:"https://github.com/SWE-bench/SWE-bench" },
+  { name:"SWE-Bench Pro",             cat:"coding",       sat:"almost", type:"agentic",     tags:"swe industrial repo",          link:"https://scale.com/research/swe_bench_pro" },
+  { name:"SWE-Bench Multilingual",    cat:"coding",       sat:"almost",     type:"agentic",     tags:"swe multilingual",             link:"https://github.com/SWE-bench/SWE-bench" },
   { name:"Multi-SWE-bench",           cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe multilingual annotated",   link:"https://multi-swe-bench.github.io" },
   { name:"SWE-smith",                 cat:"coding",       sat:"somewhat", type:"agentic",     tags:"swe debugging 60k",            link:"https://github.com/SWE-bench/SWE-smith" },
   { name:"SWE-perf",                  cat:"coding",       sat:"hard",     type:"agentic",     tags:"swe speedup optimization",     link:"https://github.com/SWE-Perf/SWE-Perf" },
@@ -649,7 +649,7 @@ const BENCHMARKS = [
   { name:"AppWorld",                  cat:"agents",       sat:"somewhat", type:"agentic",     tags:"multi-app api daily tasks",    link:"https://appworld.dev" },
   { name:"WideSearch",                cat:"research",     sat:"low",      type:"agentic",     tags:"deep research information",    link:"https://arxiv.org/pdf/2508.07999" },
   { name:"Seal-0",                    cat:"research",     sat:"almost",   type:"agentic",     tags:"search noisy facts",           link:"https://llm-stats.com/benchmarks/seal-0" },
-  { name:"BrowseComp-Plus",           cat:"research",     sat:"full",     type:"agentic",     tags:"web research retrieval",       link:"https://github.com/texttron/BrowseComp-Plus" },
+  { name:"BrowseComp-Plus",           cat:"research",     sat:"almost",     type:"agentic",     tags:"web research retrieval",       link:"https://github.com/texttron/BrowseComp-Plus" },
   { name:"FutureX",                   cat:"research",     sat:"somewhat", type:"agentic",     tags:"future prediction live",       link:"https://arxiv.org/abs/2508.11987" },
   { name:"DeepSynth",                 cat:"research",     sat:"low",      type:"agentic",     tags:"search synthesis",             link:"https://openreview.net/pdf?id=0Dhpt9aY3n" },
   { name:"AssistantBench",            cat:"research",     sat:"somewhat", type:"agentic",     tags:"web research browsing tasks",  link:"https://assistantbench.github.io" },
@@ -678,8 +678,8 @@ const SATS = ['low', 'somewhat', 'almost', 'full', 'hard'];
 const SAT_HEADER = {
   low:      { label: 'Frontier', range: '< 20%'  },
   somewhat: { label: 'Emerging', range: '20–50%' },
-  almost:   { label: 'Maturing', range: '50–80%' },
-  full:     { label: 'Solved',   range: '> 80% — ready to extend'  },
+  almost:   { label: 'Maturing', range: '50–90%' },
+  full:     { label: 'Solved',   range: '> 90% — ready to extend'  },
   hard:     { label: 'Unknown',  range: '—'       },
 };
 

@@ -619,14 +619,14 @@
       </div>
       <div class="example-facts">
         <div class="example-fact">
-          <span class="fact-num">+3 pts</span>
-          <span class="fact-lbl">GPQA Diamond: Opus 4.6 scored 91.3%, Opus 4.7 scores 94.2%<br><em>Both are in solved territory. The gap is noise.</em></span>
+          <span class="fact-num">+11 pts</span>
+          <span class="fact-lbl">SWE-bench Pro: 53.4% → 64.3%<br><em>Still maturing. This gap means something.</em></span>
         </div>
         <div class="example-fact">
-          <span class="fact-num">−4.4 pts</span>
-          <span class="fact-lbl">BrowseComp: Opus 4.7 dropped from 83.7% → 79.3%<br><em>GPT-5.4 leads at 89.3%. The release didn't lead with this.</em></span>
+          <span class="fact-num">+3 pts</span>
+          <span class="fact-lbl">GPQA Diamond: 91.3% → 94.2%<br><em>Above 90% — all frontier models are here. The gap is noise.</em></span>
         </div>
-        <p class="example-note">Saturated benchmarks don't disappear from release notes — they just stop being informative. Knowing which category a benchmark is in is how you read past the headline.</p>
+        <p class="example-note">Same release. One number tells you something, the other doesn't. The difference is where each benchmark sits on the maturity curve — and the release won't tell you that.</p>
       </div>
     </div>
   </div>
@@ -761,7 +761,7 @@
 <script>
 // ─── Tweet button ────────────────────────────────────────────────────────────
 (function() {
-  const text = "Opus 4.7 dropped this week. GPQA Diamond gap vs 4.6: 3 points. BrowseComp: Opus 4.7 regressed while GPT-5.4 leads. The release didn't lead with that. Here's how to read benchmark releases:";
+  const text = "Opus 4.7 dropped this week. SWE-bench Pro: +11 pts — that means something. GPQA Diamond: +3 pts at 94% — that's noise. Same release, two very different signals. Here's how to tell them apart:";
   const url  = "https://agent-benchmarks.com";
   const href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
 
