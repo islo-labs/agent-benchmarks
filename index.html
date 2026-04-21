@@ -327,7 +327,93 @@
     .fr-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
     .fr-src { font-size: 11px; color: var(--faint); }
 
-/* ── CTA ── */
+/* ── Example callout ── */
+    .example-callout {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--p50);
+      padding: 56px 32px;
+    }
+    .example-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .example-kicker {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--purple);
+      margin-bottom: 28px;
+    }
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+    .example-headline h3 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .example-headline p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .example-facts {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .example-fact {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--p200);
+    }
+    .example-fact:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .fact-num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: var(--purple);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .fact-lbl {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .fact-lbl em {
+      display: block;
+      font-style: normal;
+      font-size: 11px;
+      color: var(--faint);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .example-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      border-left: 2px solid var(--p200);
+      padding-left: 14px;
+      margin-top: 4px;
+    }
+    @media (max-width: 760px) {
+      .example-callout { padding: 48px 20px; }
+      .example-grid { grid-template-columns: 1fr; gap: 36px; }
+    }
+
+    /* ── CTA ── */
     .cta {
       padding: 110px 32px;
       text-align: center;
@@ -512,12 +598,36 @@
         <p>There are two ways a score drifts from reality before anyone cheats.</p>
         <p>The first is <strong>contamination</strong>. Models train on massive chunks of the internet. Benchmark tasks also come from the internet. When those overlap, the model has basically already seen the test. Scores go up. The data just leaked.</p>
         <p>The second is <strong>saturation</strong>. Once several models hit 90%+ on a benchmark, it stops measuring meaningful differences. The leaderboard keeps moving — by fractions of a percent — but the capability differences it's tracking have become noise. The benchmark has been solved; it just hasn't been retired yet.</p>
-        <p>Both problems exist before anyone cheats. And they have a predictable consequence: when public benchmarks stop being informative, labs start building internal ones. Opus 4.7's release this week is a concrete example — Anthropic's headline numbers are a 13% lift on their own 93-task internal coding benchmark and 98.5% on a partner's visual-acuity test. Neither is on a public leaderboard you can look up. That's not suspicious. It's what happens when the public ones get solved.</p>
+        <p>Both problems exist before anyone cheats.</p>
       </div>
     </div>
     <div class="vis reveal">
       <canvas id="race-canvas" width="520" height="300"></canvas>
       <span class="vis-label">Benchmark leaderboard</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Opus 4.7 callout ── -->
+<section class="example-callout">
+  <div class="example-inner">
+    <div class="example-kicker">Real example · April 2026</div>
+    <div class="example-grid">
+      <div class="example-headline">
+        <h3>When public benchmarks saturate, labs stop using them.</h3>
+        <p>Opus 4.7 dropped this week. Look at what Anthropic led with.</p>
+      </div>
+      <div class="example-facts">
+        <div class="example-fact">
+          <span class="fact-num">+13%</span>
+          <span class="fact-lbl">on an internal 93-task coding benchmark<br><em>not on any public leaderboard</em></span>
+        </div>
+        <div class="example-fact">
+          <span class="fact-num">98.5%</span>
+          <span class="fact-lbl">on a partner's visual-acuity test<br><em>not on any public leaderboard</em></span>
+        </div>
+        <p class="example-note">That's not suspicious. It's what happens when the public ones get solved — labs build new ones you can't independently verify yet.</p>
+      </div>
     </div>
   </div>
 </section>
