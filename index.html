@@ -68,6 +68,16 @@
     .nav-brand { font-size: 13px; font-weight: 700; color: var(--purple); letter-spacing: -.01em; }
     .nav-link  { font-size: 13px; font-weight: 500; color: var(--faint); transition: color .15s; }
     .nav-link:hover { color: var(--text); }
+    .nav-tweet {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--white);
+      font-size: 12px; font-weight: 600; color: var(--text);
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s ease, background .15s, box-shadow .15s;
+    }
+    .nav-tweet.visible { opacity: 1; pointer-events: auto; }
+    .nav-tweet:hover { background: var(--bg); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
 
     /* ── Hero ── */
     .hero {
@@ -423,6 +433,10 @@
 <nav>
   <div class="nav-inner">
     <a class="nav-link" href="landscape.html">All benchmarks →</a>
+    <a id="nav-tweet" href="#" target="_blank" rel="noopener" class="nav-tweet">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Share
+    </a>
   </div>
 </nav>
 
@@ -639,8 +653,21 @@
 (function() {
   const text = "Opus 4.7 just dropped. The headline benchmark numbers? Internal tests you can't look up. There's a reason for that — and it's actually interesting:";
   const url  = "https://agent-benchmarks.com";
-  document.getElementById('tweet-btn').href =
-    "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
+  const href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
+
+  document.getElementById('tweet-btn').href = href;
+
+  const navTweet = document.getElementById('nav-tweet');
+  navTweet.href = href;
+
+  const ch3 = document.getElementById('ch-race');
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) {
+      navTweet.classList.add('visible');
+      observer.disconnect();
+    }
+  }, { threshold: 0 });
+  observer.observe(ch3);
 })();
 
 // ─── GSAP scroll reveals ─────────────────────────────────────────────────────
