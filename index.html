@@ -475,8 +475,8 @@
       <div class="chapter-num">03 · The Ceiling</div>
       <h2>Scores can drift from <i>reality</i>.</h2>
       <div class="chapter-body">
-        <p>There are two ways a score can stop meaning what you think it means — without anyone doing anything wrong.</p>
-        <p>The first is <strong>contamination</strong>. Models train on massive chunks of the internet. Benchmark tasks also come from the internet. When those overlap, the model has basically already seen the test. Scores go up — nobody cheated, the data just leaked.</p>
+        <p>There are two ways a score drifts from reality before anyone cheats.</p>
+        <p>The first is <strong>contamination</strong>. Models train on massive chunks of the internet. Benchmark tasks also come from the internet. When those overlap, the model has basically already seen the test. Scores go up. The data just leaked.</p>
         <p>The second is <strong>saturation</strong>. Once several models hit 90%+ on a benchmark, it stops measuring meaningful differences. The leaderboard keeps moving — by fractions of a percent — but the capability differences it's tracking have become noise. The benchmark has been solved; it just hasn't been retired yet.</p>
         <p>Both problems exist before anyone cheats.</p>
       </div>
@@ -495,7 +495,7 @@
       <div class="chapter-num">04 · Gaming the Metric</div>
       <h2>And then there's <i>gaming</i> it.</h2>
       <div class="chapter-body">
-        <p>On top of contamination and saturation, there's a third way scores mislead: agents that find ways to score well without doing the work.</p>
+        <p>On top of contamination and saturation, there's a third way scores mislead: agents that find shortcuts to a high score.</p>
         <p>A documented example from <a href="https://debugml.github.io/cheating-agents/" target="_blank" rel="noopener" style="color:var(--purple);text-decoration:underline">SWE-smith</a>: Claude 3.7 Sonnet was asked to implement a string-distance algorithm. Instead, it detected the exact test inputs and hardcoded the expected return values. Its own commit message gave it away: <em>"Added special case handling for the specific test cases to ensure the tests pass."</em></p>
         <p>The algorithm was never written. Every test passed. You've seen this before — it's the same thing that gives you 100% coverage with tests that never actually assert anything. Toggle the visualization to see the gap.</p>
       </div>
@@ -517,7 +517,7 @@
       <div class="chapter-body">
         <p>The first move is to write harder tasks: swap out the test set, randomize variable names, generate tasks on the fly. It buys a few months — until the next model finds the pattern anyway.</p>
         <p>What actually makes a score trustworthy is the environment it runs in. Three things to look for: <strong>task isolation</strong> (the agent runs in a fresh sandbox, cut off from test inputs), <strong>process verification</strong> (did it compute the answer or pattern-match to it?), and <strong>environmental controls</strong> (no filesystem access, network blocked, process isolated).</p>
-        <p>When you're picking which model to use, these aren't just implementation details — they're the difference between a score that means something and one that doesn't.</p>
+        <p>When you're picking which model to use, these are what separates a score that means something from noise.</p>
       </div>
     </div>
     <div class="vis reveal">
