@@ -1592,12 +1592,6 @@ function rrect(ctx, x, y, w, h, r) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('VERIFIER', VX, LY);
 
-    // ── Reward label and arrow to token grid ─────────────────────────────
-    ctx.font = '500 8px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('reward:', VX + BW/2 + 6, LY - 5);
-    ctx.font = '700 11px Inter,sans-serif'; ctx.fillStyle = '#374151';
-    ctx.fillText('0 or 1', VX + BW/2 + 6, LY + 7);
 
     // ── Token grid ────────────────────────────────────────────────────────
     // Empty slots (ghost outlines)
