@@ -819,54 +819,49 @@ gsap.utils.toArray('.reveal').forEach(el => {
   canvas.style.height = H + 'px';
   ctx.scale(dpr, dpr);
 
-  const PANELS = [
-    { bench: 'GPQA Diamond',  before: 0.913, after: 0.942, label: '+2.9 pts',  verdict: 'noise',  color: '#EA580C', vColor: '#A1A1AA' },
-    { bench: 'SWE-bench Pro', before: 0.534, after: 0.643, label: '+10.9 pts', verdict: 'signal', color: '#7c3aed', vColor: '#7c3aed' },
+  // 5 models, each with a score on two benchmarks.
+  // GPQA scores cluster tightly near ceiling → looks like noise.
+  // SWE scores are spread across a wide range → looks like signal.
+  const MODELS = [
+    { color: '#7c3aed', phase: 0.00, gpqa: 0.942, swe: 0.643 },
+    { color: '#0891b2', phase: 1.26, gpqa: 0.913, swe: 0.534 },
+    { color: '#d97706', phase: 2.51, gpqa: 0.931, swe: 0.587 },
+    { color: '#16a34a', phase: 3.77, gpqa: 0.957, swe: 0.712 },
+    { color: '#ec4899', phase: 5.03, gpqa: 0.922, swe: 0.468 },
   ];
+  const SPEEDS = [0.00070, 0.00092, 0.00065, 0.00110, 0.00084];
 
-  const PAD   = Math.max(28, Math.min(64, W * 0.06));
-  const MID   = W / 2;
-  const BAR_H = 36;
-  const BAR_Y = 60;
-  const CEIL  = 0.90;
-  const CYCLE = 5200; // ms per loop
-
-  const ease  = t => 1 - Math.pow(1 - t, 3);
-  const phase = (t, a, b) => ease(Math.max(0, Math.min(1, (t - a) / (b - a))));
+  const PAD     = Math.max(24, Math.min(56, W * 0.055));
+  const MID     = W / 2;
+  const CEIL    = 0.90;
+  const BAR_H   = 12;
+  const GAP     = 7;
+  const START_Y = 44;
 
   const mouse = { x: -1, y: -1, over: false };
-  let paused  = false;
-
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) * (W / r.width);
     mouse.y = (e.clientY - r.top)  * (H / r.height);
   });
-  canvas.addEventListener('mouseenter', () => { paused = true;  mouse.over = true;  });
-  canvas.addEventListener('mouseleave', () => { paused = false; mouse.over = false; });
+  canvas.addEventListener('mouseenter', () => { mouse.over = true;  });
+  canvas.addEventListener('mouseleave', () => { mouse.over = false; });
 
   function draw(ts) {
     ctx.clearRect(0, 0, W, H);
 
-    // Cycle-based animation state (pauses on hover, shows full state)
-    let deltaA, verdictA;
-    if (paused) {
-      deltaA = 1; verdictA = 1;
-    } else {
-      const t = (ts % CYCLE) / CYCLE;
-      deltaA   = t < 0.12 ? 0
-               : t < 0.38 ? phase(t, 0.12, 0.38)
-               : t < 0.82 ? 1
-               : t < 0.93 ? 1 - phase(t, 0.82, 0.93)
-               : 0;
-      verdictA = t < 0.30 ? 0
-               : t < 0.50 ? phase(t, 0.30, 0.50)
-               : t < 0.82 ? 1
-               : t < 0.93 ? 1 - phase(t, 0.82, 0.93)
-               : 0;
-    }
+    // Live scores: each model oscillates gently around its target
+    const live = MODELS.map((m, i) => ({
+      gpqa: m.gpqa + Math.sin(ts * SPEEDS[i]       + m.phase) * 0.012,
+      swe:  m.swe  + Math.sin(ts * SPEEDS[i] * 1.4 + m.phase + 1) * 0.022,
+    }));
 
     const hovPanel = mouse.over ? (mouse.x < MID ? 0 : 1) : -1;
+
+    const PANELS = [
+      { bench: 'GPQA Diamond',  verdict: 'noise',  vColor: '#A1A1AA', hasCeil: true,  vals: live.map(s => s.gpqa) },
+      { bench: 'SWE-bench Pro', verdict: 'signal', vColor: '#7c3aed', hasCeil: false, vals: live.map(s => s.swe)  },
+    ];
 
     // Divider
     ctx.beginPath();
@@ -874,75 +869,49 @@ gsap.utils.toArray('.reveal').forEach(el => {
     ctx.strokeStyle = 'rgba(0,0,0,0.07)'; ctx.lineWidth = 1; ctx.stroke();
 
     PANELS.forEach((p, idx) => {
-      const pX       = idx * MID;
-      const barX     = pX + PAD;
-      const barW     = MID - PAD * 2;
-      const hov      = hovPanel === idx;
-      const fBase    = p.before * barW;
-      const maxDelta = (p.after - p.before) * barW;
-      const drawn    = maxDelta * deltaA;
+      const pX      = idx * MID;
+      const barX    = pX + PAD;
+      const barW    = MID - PAD * 2;
+      const hov     = hovPanel === idx;
+      const barsBot = START_Y + MODELS.length * (BAR_H + GAP) - GAP;
 
       // Ceiling line (left panel only)
-      if (idx === 0) {
+      if (p.hasCeil) {
         const cx = barX + CEIL * barW;
-        ctx.beginPath(); ctx.moveTo(cx, BAR_Y - 10); ctx.lineTo(cx, BAR_Y + BAR_H + 10);
-        ctx.strokeStyle = 'rgba(234,88,12,0.30)';
+        ctx.beginPath(); ctx.moveTo(cx, START_Y - 6); ctx.lineTo(cx, barsBot + 6);
+        ctx.strokeStyle = 'rgba(234,88,12,0.28)';
         ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
+        // Ceiling label shares the top row with bench name (right side of panel)
         ctx.font = '500 9px Inter, sans-serif';
         ctx.fillStyle = 'rgba(234,88,12,0.45)';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-        ctx.fillText('ceiling', cx, BAR_Y - 12);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('ceiling', cx, 20);
       }
 
-      // Track
-      rrect(ctx, barX, BAR_Y, barW, BAR_H, 5);
-      ctx.fillStyle = '#E4E4E9'; ctx.fill();
-
-      // Base (static — the "before" score)
-      rrect(ctx, barX, BAR_Y, fBase, BAR_H, 5);
-      ctx.fillStyle = '#C8C8D0'; ctx.fill();
-
-      // Delta (grows in each cycle — the gain)
-      if (drawn > 0.5) {
-        rrect(ctx, barX + fBase, BAR_Y, drawn, BAR_H, 4);
-        ctx.fillStyle = hov ? p.color : p.color + 'CC';
-        ctx.fill();
-      }
-
-      // Benchmark · delta label
-      const lblY = BAR_Y + BAR_H + 11;
+      // Benchmark name
       ctx.font = '500 11px Inter, sans-serif';
       ctx.fillStyle = '#A1A1AA';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(p.bench, barX, 20);
+
+      // Bars — the whole story is in these lengths
+      MODELS.forEach((m, i) => {
+        const barY  = START_Y + i * (BAR_H + GAP);
+        const fillW = Math.max(2, p.vals[i] * barW);
+
+        rrect(ctx, barX, barY, barW, BAR_H, 3);
+        ctx.fillStyle = '#E4E4E9'; ctx.fill();
+
+        rrect(ctx, barX, barY, fillW, BAR_H, 3);
+        ctx.fillStyle = hov ? m.color : m.color + 'BB';
+        ctx.fill();
+      });
+
+      // Verdict
+      ctx.font = '700 14px Inter, sans-serif';
+      ctx.fillStyle = p.vColor;
       ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText(p.bench + ' · ' + p.label, barX, lblY);
-
-      // Verdict (fades in after delta)
-      if (verdictA > 0) {
-        ctx.globalAlpha = verdictA;
-        ctx.font = '700 15px Inter, sans-serif';
-        ctx.fillStyle = p.vColor;
-        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-        ctx.fillText(p.verdict, barX, lblY + 16);
-        ctx.globalAlpha = 1;
-      }
-
-      // Hover tooltip (only while paused)
-      if (hov && paused) {
-        const label = `${(p.before * 100).toFixed(1)}% → ${(p.after * 100).toFixed(1)}%`;
-        ctx.font = '600 11px Inter, sans-serif';
-        const tw   = ctx.measureText(label).width;
-        const tipM = barX + fBase + maxDelta / 2;
-        const tipX = Math.max(barX + tw / 2 + 8, Math.min(tipM, pX + MID - PAD - tw / 2 - 8));
-        const tipY = BAR_Y - 32;
-        rrect(ctx, tipX - tw / 2 - 8, tipY - 9, tw + 16, 20, 5);
-        ctx.fillStyle = '#18181B'; ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(tipX - 5, tipY + 11); ctx.lineTo(tipX + 5, tipY + 11); ctx.lineTo(tipX, tipY + 18);
-        ctx.fillStyle = '#18181B'; ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#F4F4F5';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(label, tipX, tipY + 1);
-      }
+      ctx.fillText(p.verdict, barX, barsBot + 10);
     });
 
     requestAnimationFrame(draw);
