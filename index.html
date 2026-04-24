@@ -775,7 +775,7 @@
 <script>
 // ─── Tweet button ────────────────────────────────────────────────────────────
 (function() {
-  const text = "Opus 4.7 dropped this week. SWE-bench Pro: +11 pts — that means something. GPQA Diamond: +3 pts at 94% — that's noise. Same release, two very different signals. Here's how to tell them apart:";
+  const text = "Opus 4.7 dropped this week. SWE-bench Pro: +11 pts — that means something. GPQA Diamond: +3 pts at 94% — that's noise. Same release, two very different signals. Here's how to tell them apart (by @islolabs):";
   const url  = "https://agent-benchmarks.com";
   const href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
 
@@ -809,30 +809,34 @@ gsap.utils.toArray('.reveal').forEach(el => {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  const W   = canvas.offsetWidth  || 1440;
-  const ROW_H = 44, PAD_T = 20, PAD_B = 20;
+  const W   = canvas.offsetWidth || 1440;
+
+  const ROW_H  = 52, PAD_T = 44, PAD_B = 28;
   const MODELS = [
-    { name: 'Model A', color: '#7c3aed', score: 71, speed: 0.014 },
-    { name: 'Model B', color: '#0891b2', score: 68, speed: 0.018 },
-    { name: 'Model C', color: '#d97706', score: 74, speed: 0.010 },
-    { name: 'Model D', color: '#16a34a', score: 59, speed: 0.024 },
-    { name: 'Model E', color: '#ec4899', score: 63, speed: 0.020 },
+    { name: 'Model A', color: '#7c3aed', score: 71,  speed: 0.014 },
+    { name: 'Model B', color: '#0891b2', score: 68,  speed: 0.018 },
+    { name: 'Model C', color: '#d97706', score: 74,  speed: 0.010 },
+    { name: 'Model D', color: '#16a34a', score: 59,  speed: 0.024 },
+    { name: 'Model E', color: '#ec4899', score: 63,  speed: 0.020 },
   ];
-  const H = PAD_T + MODELS.length * ROW_H + PAD_B;
+  const H       = PAD_T + MODELS.length * ROW_H + PAD_B;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.height = H + 'px';
   ctx.scale(dpr, dpr);
 
-  const MAX = 93, CEILING = 88;
-  const LBL = Math.round(Math.max(120, W * 0.12));
-  const SCR = Math.round(Math.max(64,  W * 0.06));
+  const MAX      = 93;
+  const CEILING  = 88;
+  const LBL      = Math.min(180, Math.max(140, W * 0.14));
+  const SCR      = Math.min(80,  Math.max(64,  W * 0.065));
   const BAR_AREA = W - LBL - SCR;
-  const BAR_H    = Math.round(ROW_H * 0.44);
+  const BAR_H    = 28;
+  const AXIS_Y   = PAD_T - 8;
+  const BARS_BOT = PAD_T + MODELS.length * ROW_H;
 
   const mouse = { x: -1, y: -1, over: false };
   canvas.addEventListener('mousemove', e => {
-    const r = canvas.getBoundingClientRect();
+    const r    = canvas.getBoundingClientRect();
     mouse.x    = (e.clientX - r.left) * (W / r.width);
     mouse.y    = (e.clientY - r.top)  * (H / r.height);
     mouse.over = true;
@@ -845,7 +849,6 @@ gsap.utils.toArray('.reveal').forEach(el => {
     ctx.clearRect(0, 0, W, H);
     frame++;
 
-    // Advance scores
     if (frame % 2 === 0) {
       MODELS.forEach(m => {
         if (m.score < MAX) m.score = Math.min(MAX, m.score + m.speed + Math.random() * 0.006);
@@ -854,102 +857,151 @@ gsap.utils.toArray('.reveal').forEach(el => {
 
     const sorted   = [...MODELS].sort((a, b) => b.score - a.score);
     const hovRow   = mouse.over ? Math.floor((mouse.y - PAD_T) / ROW_H) : -1;
-    const cursorX  = mouse.over && mouse.x > LBL && mouse.x < W - SCR ? mouse.x : -1;
+    const inBar    = mouse.over && mouse.x > LBL && mouse.x < W - SCR;
+    const cursorX  = inBar ? mouse.x : -1;
     const curScore = cursorX > 0 ? (cursorX - LBL) / BAR_AREA * MAX : -1;
 
-    // Subtle horizontal row separators
-    sorted.forEach((m, rank) => {
-      if (rank > 0) {
-        const y = PAD_T + rank * ROW_H;
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y);
-        ctx.strokeStyle = 'rgba(0,0,0,0.055)'; ctx.lineWidth = 1; ctx.stroke();
-      }
+    // Axis tick grid lines
+    [25, 50, 75, CEILING].forEach(val => {
+      const tx    = LBL + (val / MAX) * BAR_AREA;
+      const isCeil = val === CEILING;
+      ctx.beginPath();
+      ctx.moveTo(tx, AXIS_Y);
+      ctx.lineTo(tx, BARS_BOT);
+      ctx.strokeStyle = isCeil ? 'rgba(234,88,12,0.18)' : 'rgba(0,0,0,0.07)';
+      ctx.lineWidth   = isCeil ? 1.5 : 1;
+      if (isCeil) ctx.setLineDash([5, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font         = '500 9px Inter, sans-serif';
+      ctx.fillStyle    = isCeil ? 'rgba(234,88,12,0.60)' : 'rgba(0,0,0,0.28)';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(isCeil ? 'SAT.' : val + '%', tx, AXIS_Y - 4);
     });
 
-    // Saturation ceiling line (draw behind bars)
-    const ceilX = LBL + (CEILING / MAX) * BAR_AREA;
+    // Axis baseline
     ctx.beginPath();
-    ctx.moveTo(ceilX, PAD_T - 4);
-    ctx.lineTo(ceilX, PAD_T + MODELS.length * ROW_H + 4);
-    ctx.strokeStyle = 'rgba(234,88,12,0.28)';
-    ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.moveTo(LBL, AXIS_Y);
+    ctx.lineTo(LBL, BARS_BOT);
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-    // Saturation label
-    ctx.font = '600 9px Inter, sans-serif';
-    ctx.fillStyle = 'rgba(234,88,12,0.55)';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText('SATURATION', ceilX, PAD_T - 6);
+    // Row separators
+    for (let i = 1; i < sorted.length; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, PAD_T + i * ROW_H);
+      ctx.lineTo(W, PAD_T + i * ROW_H);
+      ctx.strokeStyle = 'rgba(0,0,0,0.045)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
 
-    // Bars
     sorted.forEach((m, rank) => {
-      const rowY   = PAD_T + rank * ROW_H;
-      const barCY  = rowY + ROW_H / 2;
-      const isHov  = rank === hovRow;
-      const isTop  = rank === 0;
-      const barW   = (m.score / MAX) * BAR_AREA;
-      const bh     = isHov ? BAR_H + 4 : BAR_H;
+      const rowY  = PAD_T + rank * ROW_H;
+      const barCY = rowY + ROW_H / 2;
+      const isHov = rank === hovRow;
+      const isTop = rank === 0;
+      const barW  = (m.score / MAX) * BAR_AREA;
+      const bh    = isHov ? BAR_H + 4 : BAR_H;
 
-      // Row hover tint
       if (isHov) {
-        ctx.fillStyle = 'rgba(0,0,0,0.028)';
+        ctx.fillStyle = 'rgba(0,0,0,0.026)';
         ctx.fillRect(0, rowY, W, ROW_H);
       }
 
       // Background track
-      rrect(ctx, LBL, barCY - bh / 2, BAR_AREA, bh, 3);
-      ctx.fillStyle = '#EBEBEB'; ctx.fill();
+      rrect(ctx, LBL, barCY - bh / 2, BAR_AREA, bh, 4);
+      ctx.fillStyle = '#E4E4E9';
+      ctx.fill();
 
-      // Progress bar
-      if (barW > 2) {
-        rrect(ctx, LBL, barCY - bh / 2, barW, bh, 3);
-        ctx.fillStyle = m.color + (isTop ? 'EE' : isHov ? 'CC' : '88'); ctx.fill();
+      // Gradient bar
+      if (barW > 4) {
+        const grad = ctx.createLinearGradient(LBL, 0, LBL + barW, 0);
+        grad.addColorStop(0,   m.color + '55');
+        grad.addColorStop(0.6, m.color + 'BB');
+        grad.addColorStop(1,   m.color + 'EE');
+        rrect(ctx, LBL, barCY - bh / 2, barW, bh, 4);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Glow + pulsing tip on leader
+        if (isTop) {
+          const tipX  = LBL + barW;
+          const pulse = 0.55 + Math.sin(frame * 0.09) * 0.45;
+          const gR    = 18 + Math.sin(frame * 0.09) * 6;
+          const opHex = Math.round(pulse * 80).toString(16).padStart(2, '0');
+          const glow  = ctx.createRadialGradient(tipX, barCY, 0, tipX, barCY, gR);
+          glow.addColorStop(0, m.color + opHex);
+          glow.addColorStop(1, m.color + '00');
+          ctx.beginPath();
+          ctx.arc(tipX, barCY, gR, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
+
+          ctx.beginPath(); ctx.arc(tipX, barCY, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = m.color; ctx.fill();
+          ctx.beginPath(); ctx.arc(tipX, barCY, 4.5, 0, Math.PI * 2);
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        }
       }
 
       // Rank
-      ctx.font = isTop ? '700 11px Inter, sans-serif' : '500 10px Inter, sans-serif';
-      ctx.fillStyle = isTop ? m.color : '#C4C4C8';
-      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-      ctx.fillText('#' + (rank + 1), LBL - 96, barCY);
+      ctx.font         = isTop ? '700 10px Inter, sans-serif' : '400 10px Inter, sans-serif';
+      ctx.fillStyle    = isTop ? m.color : '#BBBBC4';
+      ctx.textAlign    = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('#' + (rank + 1), 32, barCY);
 
-      // Model name
-      ctx.font = (isTop || isHov ? '600' : '400') + ' 12px Inter, sans-serif';
-      ctx.fillStyle = isTop ? '#18181B' : isHov ? '#18181B' : '#71717A';
-      ctx.textAlign = 'left';
-      ctx.fillText(m.name, LBL - 88, barCY);
+      // Name (clipped)
+      ctx.font         = (isTop || isHov ? '600' : '400') + ' 12px Inter, sans-serif';
+      ctx.fillStyle    = isTop ? '#18181B' : isHov ? '#3F3F46' : '#71717A';
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.save();
+      ctx.beginPath(); ctx.rect(40, rowY, LBL - 52, ROW_H); ctx.clip();
+      ctx.fillText(m.name, 40, barCY);
+      ctx.restore();
 
       // Score
-      ctx.font = (isTop || isHov ? '700' : '500') + ' 12px Inter, sans-serif';
-      ctx.fillStyle = isTop || isHov ? m.color : '#A1A1AA';
-      ctx.textAlign = 'left';
-      ctx.fillText(m.score.toFixed(1) + '%', W - SCR + 10, barCY);
+      ctx.font         = (isTop || isHov ? '700' : '500') + ' 13px Inter, sans-serif';
+      ctx.fillStyle    = isTop || isHov ? m.color : '#A1A1AA';
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(m.score.toFixed(1) + '%', W - SCR + 12, barCY);
 
-      // Cursor intersection dot
+      // Cursor dot
       if (cursorX > LBL && barW >= cursorX - LBL) {
-        ctx.beginPath(); ctx.arc(cursorX, barCY, 5, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(cursorX, barCY, 4.5, 0, Math.PI * 2);
         ctx.fillStyle = m.color; ctx.fill();
-        ctx.beginPath(); ctx.arc(cursorX, barCY, 5, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(cursorX, barCY, 4.5, 0, Math.PI * 2);
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
       }
     });
 
-    // Cursor line + score label
+    // Cursor line + score pill
     if (cursorX > 0) {
       ctx.beginPath();
-      ctx.moveTo(cursorX, PAD_T - 4);
-      ctx.lineTo(cursorX, PAD_T + MODELS.length * ROW_H + 4);
-      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-      ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.moveTo(cursorX, AXIS_Y);
+      ctx.lineTo(cursorX, BARS_BOT);
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-      // Score pill at top
-      const label   = curScore.toFixed(1) + '%';
-      ctx.font = '600 10px Inter, sans-serif';
-      const tw = ctx.measureText(label).width;
-      const px = Math.min(Math.max(cursorX, LBL + tw / 2 + 6), W - SCR - tw / 2 - 6);
-      const py = PAD_T - 18;
-      rrect(ctx, px - tw / 2 - 6, py - 8, tw + 12, 16, 4);
+      const label = curScore.toFixed(1) + '%';
+      ctx.font     = '700 10px Inter, sans-serif';
+      const tw     = ctx.measureText(label).width;
+      const px     = Math.min(Math.max(cursorX, LBL + tw / 2 + 8), W - SCR - tw / 2 - 8);
+      const py     = AXIS_Y - 14;
+      rrect(ctx, px - tw / 2 - 7, py - 9, tw + 14, 18, 4);
       ctx.fillStyle = '#18181B'; ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#F4F4F5';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText(label, px, py);
     }
 
@@ -958,12 +1010,10 @@ gsap.utils.toArray('.reveal').forEach(el => {
 
   animate();
 
-  // Responsive: re-init on resize
   window.addEventListener('resize', () => {
     const nW = canvas.offsetWidth;
     canvas.width = nW * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    Object.assign(canvas, { W: nW });
   });
 })();
 
