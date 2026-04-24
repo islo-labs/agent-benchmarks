@@ -1413,88 +1413,84 @@ function rrect(ctx, x, y, w, h, r) {
 
   const easeIO  = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
   const easeOut = t => 1 - (1-t)*(1-t);
-  const fade01  = (T, a, b) => Math.max(0, Math.min(1, (T-a)/(b-a)));
-
-  // ── Tasks that cycle through ──────────────────────────────────────────
-  const TASKS = [
-    { file: 'sort_list.yaml',
-      yaml: ['prompt: "Sort [3, null, 1, 4]"', 'expected: "[1, 3, 4]"', 'type: code'],
-      verifier: 'exact_match', pass: true },
-    { file: 'shortest_path.yaml',
-      yaml: ['prompt: "Shortest path in G?"', 'graph: "12 nodes, 31 edges"', 'type: math'],
-      verifier: 'unit_tests', pass: true },
-    { file: 'fix_bug.yaml',
-      yaml: ['prompt: "Fix the off-by-one"', 'input: "loop i <= n"', 'type: code'],
-      verifier: 'run_tests', pass: false },
-    { file: 'summarise.yaml',
-      yaml: ['prompt: "Key findings of..."', 'rubric: step_by_step', 'type: nlp'],
-      verifier: 'llm_judge', pass: true },
-  ];
 
   // ── Layout ────────────────────────────────────────────────────────────
-  // Two code cards flanking a MODEL box
-  const LCX = 6,   LCW = 186, LCH = 200, LCY = 20; // left card (task)
-  const RCX = W-LCW-6, RCW = LCW, RCH = LCH, RCY = LCY; // right card (reward fn)
-  const MY  = LCY + 22 + (LCH - 22) * 0.44;          // model center y (in card content area)
-  const MX  = W / 2;                                   // model center x
-  const MBW = 76, MBH = 42;
+  const LY   = Math.round(H * 0.42);   // pipeline lane y
+  const MX   = Math.round(W * 0.36);   // MODEL center x
+  const VX   = Math.round(W * 0.60);   // VERIFIER center x
+  const BW   = 76, BH = 42;
 
-  // Arrow endpoints
-  const ARR1_X0 = LCX + LCW + 4;
-  const ARR1_X1 = MX - MBW / 2 - 3;
-  const ARR2_X0 = MX + MBW / 2 + 3;
-  const ARR2_X1 = RCX - 4;
+  // Reward token grid (right side)
+  const TR   = 13;                      // token radius
+  const TCOL = 4, TROW = 4;
+  const TGAP = 5;
+  const TGRID_W = TCOL * (TR*2 + TGAP) - TGAP;   // 4*(26+5)-5 = 119
+  const TGRID_X = W - TGRID_W - 14;               // left edge of grid
+  const TGRID_Y = Math.round(H * 0.10);            // top of grid
+  const TMAX    = TCOL * TROW;                     // 16 max visible
 
-  // State
-  let frame = 0, pf = 0, taskIdx = 0;
-  //  idle → fly_in → process → fly_out → evaluate → show → idle
-  const PHASES = ['idle', 'fly_in', 'process', 'fly_out', 'evaluate', 'show'];
-  const DURS   = [  55,     30,       46,         26,        42,         52  ];
-  let phaseIdx = 0;
-  let curTask = TASKS[0], rewardValue = null;
+  // Task entry hold point (where circle waits before flying into model)
+  const HOLD_X  = MX - BW/2 - 28;
+
+  // ── State ─────────────────────────────────────────────────────────────
+  let frame = 0, taskNum = 0;
+  const queue = [];
+  let mState = 'idle', mTimer = 0, mTask = null;
+  let flyDot  = null;   // { x, pass } dot flying model→verifier
+  let vTimer  = 0, vActive = false, lastPass = null;
+  const tokens = [];    // { x, y, pass, alpha, scale }
+  let tokenCount = 0;
   let nPass = 0, nTotal = 0, scoreDisp = 0;
+  const PASS_SEQ = [1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0];
+  let seqIdx = 0;
 
-  function nextPhase() {
-    phaseIdx = (phaseIdx + 1) % PHASES.length;
-    pf = 0;
-    if (PHASES[phaseIdx] === 'evaluate') {
-      rewardValue = curTask.pass;
-      nTotal++; if (rewardValue) nPass++;
-    }
-    if (PHASES[phaseIdx] === 'idle') {
-      taskIdx = (taskIdx + 1) % TASKS.length;
-      curTask = TASKS[taskIdx];
-      rewardValue = null;
-    }
+  function spawnTask() {
+    taskNum++;
+    queue.push({ num: taskNum, x: -TR, alpha: 0 });
   }
 
-  // ── Card drawing helper ───────────────────────────────────────────────
-  function card(x, y, w, h, dark) {
-    rrect(ctx, x, y, w, h, 8);
-    ctx.fillStyle = dark ? '#1C1C1F' : '#F8F8FA'; ctx.fill();
-    ctx.strokeStyle = dark ? '#3F3F46' : '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
-    // Title bar
-    rrect(ctx, x, y, w, 22, 8);
-    ctx.fillStyle = dark ? '#27272A' : '#EFEFF2'; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x, y+22); ctx.lineTo(x+w, y+22);
-    ctx.strokeStyle = dark ? '#3F3F46' : '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
-    // Traffic light dots
-    [['#FC8181',10], ['#F6AD55',20], ['#68D391',30]].forEach(([c,ox]) => {
-      ctx.beginPath(); ctx.arc(x+ox, y+11, 3, 0, Math.PI*2);
-      ctx.fillStyle = c; ctx.fill();
-    });
+  function tokenPos(slot) {
+    const col = slot % TCOL, row = Math.floor(slot / TCOL);
+    return {
+      x: TGRID_X + col * (TR*2 + TGAP) + TR,
+      y: TGRID_Y + row * (TR*2 + TGAP) + TR,
+    };
+  }
+
+  function drawTaskCircle(cx, cy, num, alpha) {
+    ctx.globalAlpha = alpha;
+    ctx.beginPath(); ctx.arc(cx, cy, TR, 0, Math.PI*2);
+    ctx.fillStyle = '#F4F4F5'; ctx.fill();
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '600 10px Inter,sans-serif';
+    ctx.fillStyle = '#52525B'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(num, cx, cy);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawToken(tok) {
+    ctx.globalAlpha = tok.alpha;
+    ctx.save(); ctx.translate(tok.x, tok.y); ctx.scale(tok.scale, tok.scale);
+    ctx.beginPath(); ctx.arc(0, 0, TR, 0, Math.PI*2);
+    ctx.fillStyle = tok.pass ? '#DCFCE7' : '#FEE2E2'; ctx.fill();
+    ctx.strokeStyle = tok.pass ? '#16a34a' : '#dc2626'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '800 14px Inter,sans-serif';
+    ctx.fillStyle = tok.pass ? '#16a34a' : '#dc2626';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(tok.pass ? '1' : '0', 0, 0);
+    ctx.restore(); ctx.globalAlpha = 1;
   }
 
   function dashedArrow(x0, x1, y) {
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1-7, y);
-    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.setLineDash([3,5]); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1 - 7, y);
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1-6, y-3.5);
-    ctx.moveTo(x1, y); ctx.lineTo(x1-6, y+3.5);
+    ctx.beginPath();
+    ctx.moveTo(x1, y); ctx.lineTo(x1-6, y-3.5); ctx.moveTo(x1, y); ctx.lineTo(x1-6, y+3.5);
     ctx.strokeStyle = '#C4C4CA'; ctx.lineWidth = 1.2; ctx.stroke();
   }
 
-  function dot(x, y, col) {
+  function colorDot(x, y, col) {
     ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI*2);
     ctx.fillStyle = col; ctx.fill();
     ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI*2);
@@ -1503,157 +1499,136 @@ function rrect(ctx, x, y, w, h, r) {
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
-    frame++; pf++;
-    if (pf >= DURS[phaseIdx]) nextPhase();
-    const T     = Math.min(pf / DURS[phaseIdx], 1);
-    const phase = PHASES[phaseIdx];
+    frame++;
 
-    // ── LEFT CARD — task file ────────────────────────────────────────────
-    // Blink new task in during idle
-    const lcAlpha = (phase === 'idle' && pf < 10) ? pf / 10 : 1;
-    ctx.globalAlpha = lcAlpha;
-    card(LCX, LCY, LCW, LCH, false);
+    // Spawn
+    if (frame % 52 === 0 && queue.length < 3) spawnTask();
 
-    // Filename
-    ctx.font = '500 7.5px Inter,sans-serif'; ctx.fillStyle = '#9CA3AF';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(curTask.file, LCX + 42, LCY + 11);
+    // ── Task queue movement ──────────────────────────────────────────────
+    for (let i = queue.length - 1; i >= 0; i--) {
+      const task = queue[i];
+      task.alpha = Math.min(1, task.alpha + 0.08);
+      const targetX = HOLD_X - i * (TR*2 + 6);
+      if (task.x < targetX) task.x = Math.min(task.x + 2.4, targetX);
 
-    // YAML content
-    ctx.textBaseline = 'top';
-    const lineY0 = LCY + 30, lh = 18, pad = LCX + 14;
-    ctx.font = '500 7.5px "Courier New", monospace';
-    ctx.fillStyle = '#9CA3AF'; ctx.fillText('---', pad, lineY0);
-
-    curTask.yaml.forEach((line, i) => {
-      const y = lineY0 + 14 + i * lh;
-      const colon = line.indexOf(':');
-      if (colon > -1) {
-        const key = line.slice(0, colon + 1);
-        const val = line.slice(colon + 1);
-        ctx.fillStyle = '#0EA5E9'; ctx.fillText(key, pad, y);
-        ctx.fillStyle = '#374151'; ctx.fillText(val, pad + ctx.measureText(key).width, y);
-      } else {
-        ctx.fillStyle = '#374151'; ctx.fillText(line, pad, y);
+      // Consume front task when model idle
+      if (i === 0 && mState === 'idle' && task.x >= HOLD_X - 1) {
+        mState = 'fly_in'; mTimer = 0; mTask = task;
+        queue.splice(0, 1);
+        break;
       }
-    });
+      drawTaskCircle(task.x, LY, task.num, task.alpha);
+    }
 
-    // Verifier row (highlighted)
-    const vy = lineY0 + 14 + curTask.yaml.length * lh + 4;
-    ctx.fillStyle = '#0EA5E9'; ctx.fillText('verifier:', pad, vy);
-    ctx.fillStyle = '#7c3aed';
-    ctx.fillText(' ' + curTask.verifier, pad + ctx.measureText('verifier:').width, vy);
+    // ── Arrows ──────────────────────────────────────────────────────────
+    dashedArrow(HOLD_X + TR + 2, MX - BW/2 - 2, LY);
+    dashedArrow(MX + BW/2 + 2, VX - BW/2 - 2, LY);
 
-    // Footer hint
-    ctx.font = '400 7px Inter,sans-serif'; ctx.fillStyle = '#C4C4CA';
-    ctx.fillText('→ reward: 0 or 1', pad, LCY + LCH - 18);
-    ctx.globalAlpha = 1;
-
-    // ── Arrows (always visible) ──────────────────────────────────────────
-    dashedArrow(ARR1_X0, ARR1_X1, MY);
-    dashedArrow(ARR2_X0, ARR2_X1, MY);
-
-    // ── Flying dot: task → model ─────────────────────────────────────────
-    if (phase === 'fly_in') {
-      const dx = ARR1_X0 + (ARR1_X1 - ARR1_X0) * easeIO(T);
-      dot(dx, MY, '#7c3aed');
+    // ── Model state machine ──────────────────────────────────────────────
+    mTimer++;
+    if (mState === 'fly_in') {
+      const prog = Math.min(mTimer / 22, 1);
+      const cx = mTask.x + (MX - mTask.x) * easeIO(prog);
+      drawTaskCircle(cx, LY, mTask.num, 1 - prog * 0.9);
+      if (mTimer >= 22) { mState = 'process'; mTimer = 0; }
+    }
+    if (mState === 'process' && mTimer >= 44) {
+      const pass = !!PASS_SEQ[seqIdx++ % PASS_SEQ.length];
+      flyDot = { x: MX + BW/2 + 4, y: LY, pass, timer: 0 };
+      mState = 'fly_out'; mTimer = 0;
+    }
+    if (mState === 'fly_out') {
+      flyDot.timer++;
+      flyDot.x = MX + BW/2 + 4 + (VX - BW/2 - 6 - MX - BW/2 - 4) * easeIO(Math.min(flyDot.timer/22, 1));
+      if (flyDot.timer >= 22) { mState = 'verifying'; mTimer = 0; vActive = true; vTimer = 0; lastPass = flyDot.pass; flyDot = null; }
+    }
+    if (mState === 'verifying' && mTimer >= 30) {
+      // Emit token into grid
+      nTotal++; if (lastPass) nPass++;
+      const slot = tokenCount % TMAX;
+      const pos = tokenPos(slot);
+      tokens[slot] = { x: pos.x, y: pos.y, pass: lastPass, alpha: 0, scale: 1.6 };
+      tokenCount++;
+      vActive = false; mState = 'idle'; mTimer = 0;
     }
 
     // ── MODEL box ────────────────────────────────────────────────────────
-    const isProc = phase === 'process';
+    const isProc = mState === 'process' || mState === 'fly_in';
     const pulse  = Math.sin(frame * 0.10) * 0.5 + 0.5;
-    ctx.shadowColor = `rgba(124,58,237,${isProc ? 0.1+pulse*0.14 : 0.04})`;
-    ctx.shadowBlur  = isProc ? 14+pulse*6 : 2;
-    rrect(ctx, MX-MBW/2, MY-MBH/2, MBW, MBH, 9);
+    ctx.shadowColor = `rgba(124,58,237,${isProc ? 0.1+pulse*0.14 : 0.03})`;
+    ctx.shadowBlur  = isProc ? 14 + pulse*6 : 2;
+    rrect(ctx, MX-BW/2, LY-BH/2, BW, BH, 9);
     ctx.fillStyle = '#f5f3ff'; ctx.fill();
-    ctx.strokeStyle = `rgba(124,58,237,${0.22+(isProc?pulse*0.24:0)})`;
+    ctx.strokeStyle = `rgba(124,58,237,${0.22 + (isProc ? pulse*0.24 : 0)})`;
     ctx.lineWidth = 1.5; ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.font = '700 10px Inter,sans-serif'; ctx.fillStyle = '#7c3aed';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('MODEL', MX, MY + (isProc ? -7 : 0));
+    ctx.fillText('MODEL', MX, LY + (isProc ? -7 : 0));
     if (isProc) {
       for (let i = 0; i < 3; i++) {
-        const b = Math.sin(frame * 0.13 + i * 1.1) * 2.5;
-        ctx.beginPath(); ctx.arc(MX - 7 + i*7, MY + 7 + b, 2.5, 0, Math.PI*2);
+        const b = Math.sin(frame*0.13 + i*1.1)*2.5;
+        ctx.beginPath(); ctx.arc(MX-7+i*7, LY+7+b, 2.5, 0, Math.PI*2);
         ctx.fillStyle = '#7c3aed55'; ctx.fill();
       }
     }
 
-    // ── Flying dot: model → reward card ─────────────────────────────────
-    if (phase === 'fly_out') {
-      const col = curTask.pass ? '#16a34a' : '#dc2626';
-      const dx = ARR2_X0 + (ARR2_X1 - ARR2_X0) * easeIO(T);
-      dot(dx, MY, col);
+    // ── Flying dot model→verifier ────────────────────────────────────────
+    if (flyDot) colorDot(flyDot.x, flyDot.y, flyDot.pass ? '#16a34a' : '#dc2626');
+
+    // ── VERIFIER box ─────────────────────────────────────────────────────
+    const vPulse = vActive ? (0.1 + pulse*0.14) : 0.03;
+    ctx.shadowColor = `rgba(245,158,11,${vPulse})`;
+    ctx.shadowBlur  = vActive ? 14+pulse*6 : 2;
+    rrect(ctx, VX-BW/2, LY-BH/2, BW, BH, 9);
+    ctx.fillStyle = '#fffbeb'; ctx.fill();
+    ctx.strokeStyle = `rgba(245,158,11,${0.22 + (vActive ? pulse*0.24 : 0)})`;
+    ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.font = '700 10px Inter,sans-serif'; ctx.fillStyle = '#d97706';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('VERIFIER', VX, LY);
+
+    // ── Reward label and arrow to token grid ─────────────────────────────
+    ctx.font = '500 8px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('reward:', VX + BW/2 + 6, LY - 5);
+    ctx.font = '700 11px Inter,sans-serif'; ctx.fillStyle = '#374151';
+    ctx.fillText('0 or 1', VX + BW/2 + 6, LY + 7);
+
+    // ── Token grid ────────────────────────────────────────────────────────
+    // Empty slots (ghost outlines)
+    for (let s = 0; s < TMAX; s++) {
+      const p = tokenPos(s);
+      ctx.beginPath(); ctx.arc(p.x, p.y, TR, 0, Math.PI*2);
+      ctx.strokeStyle = '#F0F0F2'; ctx.lineWidth = 1; ctx.stroke();
     }
+    // Filled tokens
+    tokens.forEach(tok => {
+      if (!tok) return;
+      tok.alpha  = Math.min(1, tok.alpha + 0.10);
+      tok.scale  = Math.max(1, tok.scale - 0.05);
+      drawToken(tok);
+    });
 
-    // ── RIGHT CARD — reward_fn.py ────────────────────────────────────────
-    const showRight = ['fly_out','evaluate','show'].includes(phase);
-    if (showRight) {
-      const rcAlpha = phase === 'fly_out' ? fade01(T, 0.3, 0.9) : 1;
-      ctx.globalAlpha = rcAlpha;
-      card(RCX, RCY, RCW, RCH, true);
-
-      ctx.font = '500 7.5px Inter,sans-serif'; ctx.fillStyle = '#6B7280';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText('reward_fn.py', RCX + 42, RCY + 11);
-
-      const evalT = phase === 'evaluate' ? T : (phase === 'show' ? 1 : 0);
-      const codeLines = [
-        { s: 'def reward_fn(output, task):', c: '#93C5FD' },
-        { s: '  expected = task.expected', c: '#D1D5DB' },
-        { s: '  result = verifier(', c: '#D1D5DB' },
-        { s: '    output, expected)', c: '#D1D5DB' },
-        { s: '  if result: return 1', c: curTask.pass ? '#86EFAC' : '#6B7280' },
-        { s: '  return 0', c: !curTask.pass ? '#FCA5A5' : '#6B7280' },
-      ];
-      const numShow = Math.ceil(evalT * codeLines.length);
-      const rpad = RCX + 12, rtop = RCY + 30;
-
-      ctx.font = '500 7px "Courier New",monospace';
-      ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-      codeLines.slice(0, numShow).forEach((ln, i) => {
-        ctx.fillStyle = ln.c;
-        ctx.fillText(ln.s, rpad, rtop + i * 14);
-      });
-
-      // Reward output — appears after code evaluates
-      if (evalT > 0.8 || phase === 'show') {
-        const outA = phase === 'show' ? 1 : fade01(evalT, 0.8, 1.0);
-        ctx.globalAlpha = rcAlpha * outA;
-
-        // Separator
-        const sepY = RCY + RCH - 58;
-        ctx.beginPath(); ctx.moveTo(RCX+10, sepY); ctx.lineTo(RCX+RCW-10, sepY);
-        ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 1; ctx.stroke();
-
-        // "→ reward" label
-        ctx.font = '500 8px Inter,sans-serif'; ctx.fillStyle = '#6B7280';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('→ reward', RCX + RCW/2, sepY + 14);
-
-        // Big 1 or 0
-        ctx.font = '800 44px Inter,sans-serif';
-        ctx.fillStyle = curTask.pass ? '#86EFAC' : '#FCA5A5';
-        ctx.fillText(curTask.pass ? '1' : '0', RCX + RCW/2, sepY + 42);
-        ctx.globalAlpha = 1;
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    // ── Score (below center) ─────────────────────────────────────────────
+    // ── Score ─────────────────────────────────────────────────────────────
     if (nTotal > 0) {
       const target = Math.round(nPass / nTotal * 100);
       if (scoreDisp < target) scoreDisp++;
       else if (scoreDisp > target) scoreDisp--;
-      ctx.font = '500 8px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText('running score: ' + scoreDisp + '%  (' + nTotal + ' tasks)', W/2, LCY + LCH + 10);
     }
+    const scoreY = TGRID_Y + TROW * (TR*2 + TGAP) + 14;
+    ctx.font = '600 8.5px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('SCORE', TGRID_X + TGRID_W/2, scoreY);
+    ctx.font = '800 36px Inter,sans-serif';
+    ctx.fillStyle = nTotal > 0 ? '#18181B' : '#E4E4E7';
+    ctx.fillText(nTotal > 0 ? scoreDisp + '%' : '—', TGRID_X + TGRID_W/2, scoreY + 13);
 
     requestAnimationFrame(animate);
   }
 
+  spawnTask(); spawnTask();
   animate();
 })();
 
