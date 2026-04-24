@@ -1407,174 +1407,194 @@ function rrect(ctx, x, y, w, h, r) {
   animate();
 })();
 
-// ─── 3. Evaluation Pipeline (run-canvas) ─────────────────────────────────────
+// ─── 3. Reward Hacking (run-canvas) ──────────────────────────────────────────
 (function () {
   const { ctx, W, H } = setupCanvas('run-canvas');
 
   // ── Layout ────────────────────────────────────────────────────────────
-  const CY   = H * 0.44;           // center lane y
-  const MX   = W * 0.46;           // model box center x
-  const MBW  = 86, MBH = 50;       // model box dimensions
-  const SX   = W * 0.84;           // score column center x
-  const TASK_ENTER_X = 0;
-  const HOLD_X = MX - MBW / 2 - 54; // tasks queue here
+  const CY   = H * 0.50;
+  const TOP_Y = H * 0.26;
+  const BOT_Y = H * 0.74;
+  // Four columns: task | model | grader | score
+  const TX = W * 0.13;   // task box cx
+  const MX = W * 0.38;   // model box cx
+  const GX = W * 0.68;   // grader box cx
+  const SX = W * 0.90;   // score cx
+  const BW = 72, BH = 40; // box size
+  // Fork join x (right of model, left of grader)
+  const FORK_X = MX + BW / 2 + 10;
 
-  // ── State ─────────────────────────────────────────────────────────────
-  const tasks = [];
-  let taskNum = 0, frame = 0;
-  let mState = 'idle', mTask = null, mTimer = 0;
-  const PASS_SEQ = [1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1,1];
-  let seqIdx = 0, nPass = 0, nTotal = 0, scoreDisp = 0;
-  // flying verdicts: { x, y, pass, alpha, vx }
-  const verdicts = [];
+  const easeIO  = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  const easeOut = t => 1 - (1-t)*(1-t);
+  const clamp01 = (x, a, b) => Math.max(0, Math.min(1, (x-a)/(b-a)));
 
-  const easeOut = t => 1 - (1 - t) * (1 - t);
+  // ── Phase state machine ───────────────────────────────────────────────
+  // Phases and their frame counts
+  const PHASES = ['wait','task_in','process','split','travel','grade','reveal','fadeout'];
+  const DURS   = [  22,      34,       46,      26,       38,      42,       68,      28  ];
+  let phaseIdx = 0, pf = 0, frame = 0;
 
-  function spawnTask() {
-    taskNum++;
-    tasks.push({ num: taskNum, x: TASK_ENTER_X - 22, alpha: 0 });
+  function ph() { return PHASES[phaseIdx]; }
+  function t()  { return Math.min(pf / DURS[phaseIdx], 1); }
+
+  function drawBox(cx, cy, label, sub, color, alpha) {
+    ctx.globalAlpha = alpha ?? 1;
+    rrect(ctx, cx - BW/2, cy - BH/2, BW, BH, 9);
+    ctx.fillStyle = color + '12'; ctx.fill();
+    ctx.strokeStyle = color + '55'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '700 10px Inter,sans-serif';
+    ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx, sub ? cy - 6 : cy);
+    if (sub) {
+      ctx.font = '400 7px Inter,sans-serif';
+      ctx.fillStyle = color + 'AA';
+      ctx.fillText(sub, cx, cy + 7);
+    }
+    ctx.globalAlpha = 1;
   }
 
-  function dottedArrow(x0, x1, y) {
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1 - 7, y);
-    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.2;
-    ctx.setLineDash([4, 6]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(x1, y); ctx.lineTo(x1 - 6, y - 3.5);
-    ctx.moveTo(x1, y); ctx.lineTo(x1 - 6, y + 3.5);
-    ctx.strokeStyle = '#BDBDC7'; ctx.lineWidth = 1.2; ctx.stroke();
-  }
-
-  function drawPill(cx, cy, label, alpha) {
-    const pw = 48, ph = 22;
-    ctx.globalAlpha = alpha;
-    rrect(ctx, cx - pw / 2, cy - ph / 2, pw, ph, 5);
+  function drawTaskPill(cx, cy, alpha) {
+    ctx.globalAlpha = alpha ?? 1;
+    rrect(ctx, cx - 36, cy - 12, 72, 24, 5);
     ctx.fillStyle = '#F4F4F5'; ctx.fill();
     ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.font = '500 7.5px Inter, sans-serif';
+    ctx.font = '500 8px Inter,sans-serif';
     ctx.fillStyle = '#52525B'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(label, cx, cy);
+    ctx.fillText('Task #47', cx, cy);
     ctx.globalAlpha = 1;
+  }
+
+  function dashedLine(x0, y0, x1, y1, color, alpha) {
+    ctx.globalAlpha = alpha ?? 1;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+    ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
   }
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
-    frame++;
+    frame++; pf++;
+    if (pf >= DURS[phaseIdx]) { phaseIdx = (phaseIdx + 1) % PHASES.length; pf = 0; }
+    const T = t(), phase = ph();
 
-    if (frame % 56 === 0 && tasks.length < 4) spawnTask();
+    // ── Static boxes (always visible) ────────────────────────────────────
+    drawBox(TX, CY, 'TASK', '500 problems', '#71717A', 1);
 
-    // ── Connector arrows ─────────────────────────────────────────────────
-    dottedArrow(W * 0.05, MX - MBW / 2 - 2, CY);
-    dottedArrow(MX + MBW / 2 + 2, SX - 34, CY);
-
-    // ── Task queue (left) ────────────────────────────────────────────────
-    const SPEED = 2.0;
-    for (let i = tasks.length - 1; i >= 0; i--) {
-      const t = tasks[i];
-      t.alpha = Math.min(1, t.alpha + 0.06);
-      // Each task slots in behind the previous one
-      const targetX = HOLD_X - i * 54;
-      if (t.x < targetX) t.x = Math.min(t.x + SPEED, targetX);
-
-      // Front task: when model idle and task reaches hold point, consume it
-      if (i === 0 && mState === 'idle' && t.x >= HOLD_X - 2) {
-        mState = 'in'; mTask = { ...t }; mTimer = 0;
-        tasks.splice(0, 1);
-        break;
-      }
-
-      drawPill(t.x, CY, 'Task ' + t.num, t.alpha);
-    }
-
-    // ── Model state machine ──────────────────────────────────────────────
-    mTimer++;
-    if (mState === 'in') {
-      // Pill shrinks and fades into model box
-      const prog = Math.min(mTimer / 20, 1);
-      const px = mTask.x + (MX - mTask.x) * easeOut(prog);
-      drawPill(px, CY, 'Task ' + mTask.num, 1 - prog * 0.9);
-      if (mTimer >= 20) { mState = 'processing'; mTimer = 0; }
-    }
-    else if (mState === 'processing' && mTimer > 46) {
-      const pass = !!PASS_SEQ[seqIdx++ % PASS_SEQ.length];
-      nTotal++; if (pass) nPass++;
-      verdicts.push({ x: MX + MBW / 2 + 4, y: CY, pass, alpha: 1, vx: 2.6 });
-      mState = 'out'; mTimer = 0;
-    }
-    else if (mState === 'out' && mTimer > 18) { mState = 'idle'; mTimer = 0; }
-
-    // ── MODEL box ────────────────────────────────────────────────────────
-    const isProc = mState === 'processing' || mState === 'in';
-    const pulse = Math.sin(frame * 0.09) * 0.5 + 0.5;
-    ctx.shadowColor = `rgba(124,58,237,${0.05 + (isProc ? pulse * 0.12 : 0)})`;
-    ctx.shadowBlur  = isProc ? 14 + pulse * 8 : 3;
-    rrect(ctx, MX - MBW / 2, CY - MBH / 2, MBW, MBH, 10);
-    ctx.fillStyle = '#f5f3ff'; ctx.fill();
-    ctx.strokeStyle = `rgba(124,58,237,${0.20 + (isProc ? pulse * 0.24 : 0)})`;
-    ctx.lineWidth = 1.5; ctx.stroke();
+    // MODEL — glows during processing
+    const isProc = phase === 'process';
+    const pulse = Math.sin(frame * 0.10) * 0.5 + 0.5;
+    ctx.shadowColor = `rgba(124,58,237,${isProc ? 0.08 + pulse*0.14 : 0.03})`;
+    ctx.shadowBlur  = isProc ? 14 + pulse*6 : 2;
+    drawBox(MX, CY, 'MODEL', null, '#7c3aed', 1);
     ctx.shadowBlur = 0;
-
-    ctx.font = '700 11px Inter, sans-serif'; ctx.fillStyle = '#7c3aed';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('MODEL', MX, CY + (isProc ? -7 : 0));
     if (isProc) {
       for (let i = 0; i < 3; i++) {
-        const b = Math.sin(frame * 0.13 + i * 1.1) * 2.5;
-        ctx.beginPath(); ctx.arc(MX - 8 + i * 8, CY + 7 + b, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#7c3aed60'; ctx.fill();
+        const b = Math.sin(frame*0.14 + i*1.1) * 2;
+        ctx.beginPath(); ctx.arc(MX - 8 + i*8, CY + 9 + b, 2.5, 0, Math.PI*2);
+        ctx.fillStyle = '#7c3aed55'; ctx.fill();
       }
     }
 
-    // ── Flying verdicts ──────────────────────────────────────────────────
-    for (let i = verdicts.length - 1; i >= 0; i--) {
-      const v = verdicts[i];
-      v.x += v.vx;
-      v.vx *= 0.93; // decelerate
-      // Start fading after reaching score zone
-      if (v.x > SX - 40) v.alpha = Math.max(0, v.alpha - 0.06);
-      if (v.alpha <= 0) { verdicts.splice(i, 1); continue; }
+    // GRADER box (amber)
+    drawBox(GX, CY, 'GRADER', 'automated check', '#f59e0b', 1);
 
-      ctx.globalAlpha = v.alpha;
-      ctx.font = `700 ${Math.round(14 + (1 - v.alpha) * 8)}px Inter, sans-serif`;
-      ctx.fillStyle = v.pass ? '#16a34a' : '#dc2626';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(v.pass ? '✓' : '✗', v.x, v.y);
+    // ── Main lane arrows (always) ─────────────────────────────────────────
+    // Task → Model
+    dashedLine(TX + BW/2 + 2, CY, MX - BW/2 - 2, CY, '#C4C4CA');
+    // Grader → Score line
+    dashedLine(GX + BW/2 + 2, CY, SX - 22, CY, '#C4C4CA');
+
+    // ── Fork paths (appear from split phase onward) ───────────────────────
+    const showFork = ['split','travel','grade','reveal','fadeout'].includes(phase);
+    if (showFork) {
+      const fAlpha = phase === 'split' ? easeOut(T) : 1;
+      const topY = phase === 'split' ? CY + (TOP_Y - CY) * easeOut(T) : TOP_Y;
+      const botY = phase === 'split' ? CY + (BOT_Y - CY) * easeOut(T) : BOT_Y;
+
+      // Fork trunk: model right edge → FORK_X
+      dashedLine(MX + BW/2 + 1, CY, FORK_X, CY, '#C4C4CA', fAlpha);
+      // Vertical splitter
+      dashedLine(FORK_X, topY, FORK_X, botY, '#C4C4CA', fAlpha);
+      // Top arm (green — correct)
+      dashedLine(FORK_X, topY, GX - BW/2 - 1, topY, '#16a34a', fAlpha * 0.7);
+      // Bottom arm (orange — hack)
+      dashedLine(FORK_X, botY, GX - BW/2 - 1, botY, '#f59e0b', fAlpha * 0.7);
+
+      // Path labels (appear on the horizontal arms)
+      const labelMidX = (FORK_X + GX - BW/2) / 2;
+      ctx.globalAlpha = fAlpha;
+      ctx.font = '600 7.5px Inter,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#16a34a'; ctx.textBaseline = 'bottom';
+      ctx.fillText('correct answer', labelMidX, topY - 5);
+      ctx.fillStyle = '#f59e0b'; ctx.textBaseline = 'top';
+      ctx.fillText('reward hack', labelMidX, botY + 5);
       ctx.globalAlpha = 1;
     }
 
-    // ── Section labels ───────────────────────────────────────────────────
-    ctx.font = '500 8px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('TASK BANK', W * 0.10, CY + MBH / 2 + 10);
-    ctx.fillText('GRADER', MX + MBW / 2 + 28, CY + MBH / 2 + 10);
+    // ── Phase-specific animations ─────────────────────────────────────────
+    if (phase === 'task_in') {
+      const px = TX + BW/2 + 6 + (MX - BW/2 - 8 - TX - BW/2 - 6) * easeIO(T);
+      drawTaskPill(px, CY, 1);
+    }
 
-    // ── Score column ─────────────────────────────────────────────────────
-    if (nTotal > 0) {
-      const target = Math.round(nPass / nTotal * 100);
-      if (scoreDisp < target) scoreDisp++;
-      else if (scoreDisp > target) scoreDisp--;
+    // Dots traveling the fork paths
+    if (phase === 'travel') {
+      const px = FORK_X + (GX - BW/2 - 2 - FORK_X) * easeIO(T);
+      // Green dot (correct)
+      ctx.beginPath(); ctx.arc(px, TOP_Y, 5.5, 0, Math.PI*2);
+      ctx.fillStyle = '#16a34a'; ctx.fill();
+      ctx.beginPath(); ctx.arc(px, TOP_Y, 5.5, 0, Math.PI*2);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      // Orange dot (hack)
+      ctx.beginPath(); ctx.arc(px, BOT_Y, 5.5, 0, Math.PI*2);
+      ctx.fillStyle = '#f59e0b'; ctx.fill();
+      ctx.beginPath(); ctx.arc(px, BOT_Y, 5.5, 0, Math.PI*2);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
 
-      ctx.font = '600 8.5px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
+    // Grader stamps both ✓ — same color (the whole point!)
+    if (phase === 'grade' || phase === 'reveal' || phase === 'fadeout') {
+      const topA = phase === 'grade' ? clamp01(T, 0.18, 0.44) : 1;
+      const botA = phase === 'grade' ? clamp01(T, 0.52, 0.78) : 1;
+      const globalFade = phase === 'fadeout' ? 1 - easeOut(T) : 1;
+
+      ctx.globalAlpha = topA * globalFade;
+      ctx.font = '700 20px Inter,sans-serif';
+      ctx.fillStyle = '#16a34a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('✓', GX + BW/2 + 14, TOP_Y);
+
+      ctx.globalAlpha = botA * globalFade;
+      // SAME green for the hack — that's the reveal
+      ctx.fillText('✓', GX + BW/2 + 14, BOT_Y);
+      ctx.globalAlpha = 1;
+    }
+
+    // ── Score + reveal note ───────────────────────────────────────────────
+    if (phase === 'reveal' || phase === 'fadeout') {
+      const fadeA = phase === 'fadeout' ? 1 - easeOut(T) : 1;
+      const scoreA = phase === 'reveal' ? clamp01(T, 0, 0.35) : 1;
+      const noteA  = phase === 'reveal' ? clamp01(T, 0.45, 0.80) : 1;
+
+      ctx.globalAlpha = scoreA * fadeA;
+      ctx.font = '600 8.5px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('SCORE', SX, CY - 24);
+      ctx.fillText('SCORE', SX, CY - 22);
+      ctx.font = '800 40px Inter,sans-serif'; ctx.fillStyle = '#18181B';
+      ctx.fillText('73%', SX, CY + 4);
+      ctx.globalAlpha = 1;
 
-      ctx.font = '800 42px Inter, sans-serif'; ctx.fillStyle = '#18181B';
-      ctx.fillText(scoreDisp + '%', SX, CY + 4);
-
-      ctx.font = '500 8px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.fillText(nTotal + ' tasks', SX, CY + 30);
-    } else {
-      ctx.font = '600 8.5px Inter, sans-serif'; ctx.fillStyle = '#D4D4D8';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('SCORE', SX, CY - 24);
-      ctx.font = '800 42px Inter, sans-serif'; ctx.fillStyle = '#E4E4E7';
-      ctx.fillText('—', SX, CY + 4);
+      // Red note at bottom — the punchline
+      ctx.globalAlpha = noteA * fadeA;
+      ctx.font = '500 8.5px Inter,sans-serif'; ctx.fillStyle = '#EF4444';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText('Grader can\'t tell the difference', W * 0.50, H * 0.88);
+      ctx.globalAlpha = 1;
     }
 
     requestAnimationFrame(animate);
   }
 
-  spawnTask();
   animate();
 })();
 
