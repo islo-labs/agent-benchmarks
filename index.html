@@ -803,217 +803,144 @@ gsap.utils.toArray('.reveal').forEach(el => {
   });
 });
 
-// ─── Hero: Race Visualization ────────────────────────────────────────────────
+// ─── Hero: Signal vs Noise ───────────────────────────────────────────────────
 (function () {
   const canvas = document.getElementById('race-vis');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth || 1440;
+  const H   = 156;
 
-  const ROW_H  = 52, PAD_T = 44, PAD_B = 28;
-  const MODELS = [
-    { name: 'Model A', color: '#7c3aed', score: 71,  speed: 0.014 },
-    { name: 'Model B', color: '#0891b2', score: 68,  speed: 0.018 },
-    { name: 'Model C', color: '#d97706', score: 74,  speed: 0.010 },
-    { name: 'Model D', color: '#16a34a', score: 59,  speed: 0.024 },
-    { name: 'Model E', color: '#ec4899', score: 63,  speed: 0.020 },
-  ];
-  const H       = PAD_T + MODELS.length * ROW_H + PAD_B;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.height = H + 'px';
   ctx.scale(dpr, dpr);
 
-  const MAX      = 93;
-  const CEILING  = 88;
-  const LBL      = Math.min(180, Math.max(140, W * 0.14));
-  const SCR      = Math.min(80,  Math.max(64,  W * 0.065));
-  const BAR_AREA = W - LBL - SCR;
-  const BAR_H    = 28;
-  const AXIS_Y   = PAD_T - 8;
-  const BARS_BOT = PAD_T + MODELS.length * ROW_H;
+  // Two panels: same delta story, very different meaning
+  const PANELS = [
+    { bench: 'GPQA Diamond',  before: 0.913, after: 0.942, label: '+2.9 pts', verdict: 'noise',  color: '#EA580C', vColor: '#A1A1AA' },
+    { bench: 'SWE-bench Pro', before: 0.534, after: 0.643, label: '+10.9 pts', verdict: 'signal', color: '#7c3aed', vColor: '#7c3aed' },
+  ];
+
+  const PAD   = Math.max(28, Math.min(72, W * 0.055));
+  const MID   = W / 2;
+  const BAR_H = 36;
+  const BAR_Y = 56;
+  const CEIL  = 0.90;
 
   const mouse = { x: -1, y: -1, over: false };
   canvas.addEventListener('mousemove', e => {
-    const r    = canvas.getBoundingClientRect();
-    mouse.x    = (e.clientX - r.left) * (W / r.width);
-    mouse.y    = (e.clientY - r.top)  * (H / r.height);
+    const r = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - r.left) * (W / r.width);
+    mouse.y = (e.clientY - r.top)  * (H / r.height);
     mouse.over = true;
   });
   canvas.addEventListener('mouseleave', () => { mouse.over = false; });
 
-  let frame = 0;
+  let prog = 0, raf;
+  const ease = t => 1 - Math.pow(1 - t, 3);
 
-  function animate() {
+  function draw() {
     ctx.clearRect(0, 0, W, H);
-    frame++;
+    prog = Math.min(1, prog + 0.016);
 
-    if (frame % 2 === 0) {
-      MODELS.forEach(m => {
-        if (m.score < MAX) m.score = Math.min(MAX, m.score + m.speed + Math.random() * 0.006);
-      });
-    }
+    const baseProg  = ease(Math.min(1, prog * 1.5));
+    const deltaProg = ease(Math.max(0, (prog - 0.55) / 0.45));
+    const hovPanel  = mouse.over ? (mouse.x < MID ? 0 : 1) : -1;
 
-    const sorted   = [...MODELS].sort((a, b) => b.score - a.score);
-    const hovRow   = mouse.over ? Math.floor((mouse.y - PAD_T) / ROW_H) : -1;
-    const inBar    = mouse.over && mouse.x > LBL && mouse.x < W - SCR;
-    const cursorX  = inBar ? mouse.x : -1;
-    const curScore = cursorX > 0 ? (cursorX - LBL) / BAR_AREA * MAX : -1;
-
-    // Axis tick grid lines
-    [25, 50, 75, CEILING].forEach(val => {
-      const tx    = LBL + (val / MAX) * BAR_AREA;
-      const isCeil = val === CEILING;
-      ctx.beginPath();
-      ctx.moveTo(tx, AXIS_Y);
-      ctx.lineTo(tx, BARS_BOT);
-      ctx.strokeStyle = isCeil ? 'rgba(234,88,12,0.18)' : 'rgba(0,0,0,0.07)';
-      ctx.lineWidth   = isCeil ? 1.5 : 1;
-      if (isCeil) ctx.setLineDash([5, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.font         = '500 9px Inter, sans-serif';
-      ctx.fillStyle    = isCeil ? 'rgba(234,88,12,0.60)' : 'rgba(0,0,0,0.28)';
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(isCeil ? 'SAT.' : val + '%', tx, AXIS_Y - 4);
-    });
-
-    // Axis baseline
+    // Divider
     ctx.beginPath();
-    ctx.moveTo(LBL, AXIS_Y);
-    ctx.lineTo(LBL, BARS_BOT);
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.moveTo(MID, 12); ctx.lineTo(MID, H - 12);
+    ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+    ctx.lineWidth = 1; ctx.stroke();
 
-    // Row separators
-    for (let i = 1; i < sorted.length; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, PAD_T + i * ROW_H);
-      ctx.lineTo(W, PAD_T + i * ROW_H);
-      ctx.strokeStyle = 'rgba(0,0,0,0.045)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
+    PANELS.forEach((p, idx) => {
+      const pX   = idx * MID;
+      const barX = pX + PAD;
+      const barW = MID - PAD * 2;
+      const hov  = hovPanel === idx;
 
-    sorted.forEach((m, rank) => {
-      const rowY  = PAD_T + rank * ROW_H;
-      const barCY = rowY + ROW_H / 2;
-      const isHov = rank === hovRow;
-      const isTop = rank === 0;
-      const barW  = (m.score / MAX) * BAR_AREA;
-      const bh    = isHov ? BAR_H + 4 : BAR_H;
+      const fBase  = p.before * barW * baseProg;
+      const fDelta = (p.after - p.before) * barW * deltaProg;
 
-      if (isHov) {
-        ctx.fillStyle = 'rgba(0,0,0,0.026)';
-        ctx.fillRect(0, rowY, W, ROW_H);
+      // Ceiling marker (left panel only) — drawn behind bar
+      if (idx === 0) {
+        const cx = barX + CEIL * barW;
+        ctx.beginPath(); ctx.moveTo(cx, BAR_Y - 10); ctx.lineTo(cx, BAR_Y + BAR_H + 10);
+        ctx.strokeStyle = 'rgba(234,88,12,0.30)';
+        ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.font = '500 9px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(234,88,12,0.45)';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('ceiling', cx, BAR_Y - 12);
       }
 
-      // Background track
-      rrect(ctx, LBL, barCY - bh / 2, BAR_AREA, bh, 4);
-      ctx.fillStyle = '#E4E4E9';
-      ctx.fill();
+      // Track
+      rrect(ctx, barX, BAR_Y, barW, BAR_H, 5);
+      ctx.fillStyle = '#E4E4E9'; ctx.fill();
 
-      // Gradient bar
-      if (barW > 4) {
-        const grad = ctx.createLinearGradient(LBL, 0, LBL + barW, 0);
-        grad.addColorStop(0,   m.color + '55');
-        grad.addColorStop(0.6, m.color + 'BB');
-        grad.addColorStop(1,   m.color + 'EE');
-        rrect(ctx, LBL, barCY - bh / 2, barW, bh, 4);
-        ctx.fillStyle = grad;
+      // Base fill (muted gray — the "before" score)
+      if (fBase > 1) {
+        rrect(ctx, barX, BAR_Y, fBase, BAR_H, 5);
+        ctx.fillStyle = '#C8C8D0'; ctx.fill();
+      }
+
+      // Delta fill (colored — the gain)
+      if (fDelta > 0.5) {
+        rrect(ctx, barX + fBase, BAR_Y, fDelta, BAR_H, 4);
+        ctx.fillStyle = hov ? p.color : p.color + 'CC';
         ctx.fill();
-
-        // Glow + pulsing tip on leader
-        if (isTop) {
-          const tipX  = LBL + barW;
-          const pulse = 0.55 + Math.sin(frame * 0.09) * 0.45;
-          const gR    = 18 + Math.sin(frame * 0.09) * 6;
-          const opHex = Math.round(pulse * 80).toString(16).padStart(2, '0');
-          const glow  = ctx.createRadialGradient(tipX, barCY, 0, tipX, barCY, gR);
-          glow.addColorStop(0, m.color + opHex);
-          glow.addColorStop(1, m.color + '00');
-          ctx.beginPath();
-          ctx.arc(tipX, barCY, gR, 0, Math.PI * 2);
-          ctx.fillStyle = glow;
-          ctx.fill();
-
-          ctx.beginPath(); ctx.arc(tipX, barCY, 4.5, 0, Math.PI * 2);
-          ctx.fillStyle = m.color; ctx.fill();
-          ctx.beginPath(); ctx.arc(tipX, barCY, 4.5, 0, Math.PI * 2);
-          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-        }
       }
 
-      // Rank
-      ctx.font         = isTop ? '700 10px Inter, sans-serif' : '400 10px Inter, sans-serif';
-      ctx.fillStyle    = isTop ? m.color : '#BBBBC4';
-      ctx.textAlign    = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('#' + (rank + 1), 32, barCY);
+      // Benchmark name + delta label below bar
+      const labelY = BAR_Y + BAR_H + 11;
+      ctx.font = '500 11px Inter, sans-serif';
+      ctx.fillStyle = '#A1A1AA';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText(p.bench + ' · ' + p.label, barX, labelY);
 
-      // Name (clipped)
-      ctx.font         = (isTop || isHov ? '600' : '400') + ' 12px Inter, sans-serif';
-      ctx.fillStyle    = isTop ? '#18181B' : isHov ? '#3F3F46' : '#71717A';
-      ctx.textAlign    = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.save();
-      ctx.beginPath(); ctx.rect(40, rowY, LBL - 52, ROW_H); ctx.clip();
-      ctx.fillText(m.name, 40, barCY);
-      ctx.restore();
+      // Verdict
+      ctx.font = '700 15px Inter, sans-serif';
+      ctx.fillStyle = p.vColor;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText(p.verdict, barX, labelY + 16);
 
-      // Score
-      ctx.font         = (isTop || isHov ? '700' : '500') + ' 13px Inter, sans-serif';
-      ctx.fillStyle    = isTop || isHov ? m.color : '#A1A1AA';
-      ctx.textAlign    = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(m.score.toFixed(1) + '%', W - SCR + 12, barCY);
+      // Hover tooltip — score range pill above delta region
+      if (hov && prog >= 1) {
+        const label  = `${(p.before * 100).toFixed(1)}% → ${(p.after * 100).toFixed(1)}%`;
+        ctx.font     = '600 11px Inter, sans-serif';
+        const tw     = ctx.measureText(label).width;
+        const tipMid = barX + fBase + fDelta / 2;
+        const tipX   = Math.max(barX + tw / 2 + 8, Math.min(tipMid, pX + MID - PAD - tw / 2 - 8));
+        const tipY   = BAR_Y - 32;
 
-      // Cursor dot
-      if (cursorX > LBL && barW >= cursorX - LBL) {
-        ctx.beginPath(); ctx.arc(cursorX, barCY, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = m.color; ctx.fill();
-        ctx.beginPath(); ctx.arc(cursorX, barCY, 4.5, 0, Math.PI * 2);
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        rrect(ctx, tipX - tw / 2 - 8, tipY - 9, tw + 16, 20, 5);
+        ctx.fillStyle = '#18181B'; ctx.fill();
+
+        // Arrow
+        ctx.beginPath();
+        ctx.moveTo(tipX - 5, tipY + 11); ctx.lineTo(tipX + 5, tipY + 11); ctx.lineTo(tipX, tipY + 18);
+        ctx.fillStyle = '#18181B'; ctx.closePath(); ctx.fill();
+
+        ctx.fillStyle    = '#F4F4F5';
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, tipX, tipY + 1);
       }
     });
 
-    // Cursor line + score pill
-    if (cursorX > 0) {
-      ctx.beginPath();
-      ctx.moveTo(cursorX, AXIS_Y);
-      ctx.lineTo(cursorX, BARS_BOT);
-      ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-      ctx.lineWidth   = 1.5;
-      ctx.setLineDash([4, 3]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      const label = curScore.toFixed(1) + '%';
-      ctx.font     = '700 10px Inter, sans-serif';
-      const tw     = ctx.measureText(label).width;
-      const px     = Math.min(Math.max(cursorX, LBL + tw / 2 + 8), W - SCR - tw / 2 - 8);
-      const py     = AXIS_Y - 14;
-      rrect(ctx, px - tw / 2 - 7, py - 9, tw + 14, 18, 4);
-      ctx.fillStyle = '#18181B'; ctx.fill();
-      ctx.fillStyle = '#F4F4F5';
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label, px, py);
-    }
-
-    requestAnimationFrame(animate);
+    if (prog < 1 || mouse.over) raf = requestAnimationFrame(draw);
   }
 
-  animate();
+  canvas.addEventListener('mouseenter', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); });
+  draw();
 
   window.addEventListener('resize', () => {
     const nW = canvas.offsetWidth;
-    canvas.width = nW * dpr;
+    canvas.width = nW * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    prog = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(draw);
   });
 })();
 
