@@ -83,9 +83,11 @@
     .hero {
       min-height: 88vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 80px 32px;
+      padding: 64px 32px 52px;
+      gap: 44px;
       background: var(--white);
       position: relative;
       overflow: hidden;
@@ -93,14 +95,7 @@
     .hero-bg {
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse 70% 50% at 50% 65%, #f5f3ff 0%, transparent 70%);
-      pointer-events: none;
-    }
-    #hero-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      background: radial-gradient(ellipse 70% 45% at 50% 30%, #f5f3ff 0%, transparent 70%);
       pointer-events: none;
     }
     .hero-inner {
@@ -109,6 +104,51 @@
       position: relative;
       z-index: 1;
     }
+
+    /* ── Hero vis ── */
+    .hero-vis {
+      width: 100%;
+      max-width: 1080px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      background: #FAFAFA;
+    }
+    .hero-vis-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+    }
+    .vis-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #dc2626;
+    }
+    .vis-live-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+    .vis-bench-label {
+      font-size: 10px; font-weight: 500;
+      color: var(--faint); letter-spacing: .01em;
+    }
+    #main-vis { display: block; width: 100%; aspect-ratio: 1080 / 220; }
     .eyebrow {
       font-size: 11px;
       font-weight: 600;
@@ -495,8 +535,10 @@
 
       .nav-inner { padding: 0 16px; }
 
-      .hero { padding: 48px 20px; min-height: 75vh; }
+      .hero { padding: 40px 20px 36px; min-height: auto; gap: 24px; }
       .hero-sub { font-size: 15px; }
+      .hero-vis { border-radius: 8px; }
+      .vis-bench-label { display: none; }
 
       .chapter { padding: 48px 20px; }
       .chapter-inner { grid-template-columns: 1fr; gap: 28px; }
@@ -533,7 +575,6 @@
 <!-- ── Hero ── -->
 <section class="hero" id="hero-section">
   <div class="hero-bg"></div>
-  <canvas id="hero-canvas"></canvas>
   <div class="hero-inner">
     <div class="eyebrow">Agent Benchmarks · 2026</div>
     <h1>Every AI breakthrough starts<br>with a <i>benchmark</i></h1>
@@ -552,6 +593,13 @@
         </svg>
       </a>
     </div>
+  </div>
+  <div class="hero-vis">
+    <div class="hero-vis-bar">
+      <span class="vis-live-badge"><span class="vis-live-dot"></span>Live</span>
+      <span class="vis-bench-label">3 benchmarks · continuous evaluation</span>
+    </div>
+    <canvas id="main-vis" width="1080" height="220"></canvas>
   </div>
 </section>
 
@@ -793,92 +841,181 @@ gsap.utils.toArray('.reveal').forEach(el => {
   });
 });
 
-// ─── Hero network ────────────────────────────────────────────────────────────
+// ─── Hero: Benchmark Monitor ─────────────────────────────────────────────────
 (function () {
-  const canvas = document.getElementById('hero-canvas');
-  const ctx    = canvas.getContext('2d');
-  const hero   = document.getElementById('hero-section');
-  const N      = 44;
-  let W, H, nodes;
-  let mouse = { x: -9999, y: -9999 };
+  const canvas = document.getElementById('main-vis');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.offsetWidth  || 1080;
+  const H   = canvas.offsetHeight || 220;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
 
-  function init() {
-    const dpr  = window.devicePixelRatio || 1;
-    const rect = hero.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    if (!nodes) {
-      nodes = Array.from({ length: N }, () => ({
-        x:   Math.random() * W,
-        y:   Math.random() * H,
-        vx:  (Math.random() - 0.5) * 0.22,
-        vy:  (Math.random() - 0.5) * 0.22,
-        r:   1.5 + Math.random() * 1.8,
-        col: Math.random() > 0.52 ? 0 : 1  // 0=purple 1=teal
-      }));
-    }
+  // Responsive channel count
+  const numCh = H >= 170 ? 3 : H >= 110 ? 2 : 1;
+
+  const ALL_CH = [
+    { name: 'SWE-BENCH',    color: '#7c3aed', score: 64.3, nextBeat: 38  },
+    { name: 'GPQA DIAMOND', color: '#0891b2', score: 94.2, nextBeat: 105 },
+    { name: 'HUMANEVAL',    color: '#d97706', score: 88.1, nextBeat: 170 },
+  ];
+  const CHS = ALL_CH.slice(0, numCh);
+  const CH_H = H / numCh;
+
+  const PAD_L = Math.round(Math.max(78, W * 0.085));
+  const PAD_R = Math.round(Math.max(64, W * 0.072));
+  const SIG_W = W - PAD_L - PAD_R;
+
+  const TASKS = [
+    'null ptr fix', 'rate limiter', 'off-by-one',
+    'sql injection', 'race cond.', 'mem leak',
+    'api auth', 'cache evict', 'deadlock',
+    'regex parse', 'batch sort', 'type coerce',
+  ];
+  let taskIdx = 0, frame = 0;
+
+  // Beat shape: EKG-style — sharp exponential rise then decay
+  function beatY(f, pass) {
+    if (pass) return 22 * (f / 7) * Math.exp(-0.13 * f);
+    return -9 * (f / 5) * Math.exp(-0.16 * f);
   }
 
-  hero.addEventListener('mousemove', e => {
-    const r = hero.getBoundingClientRect();
-    mouse.x = e.clientX - r.left;
-    mouse.y = e.clientY - r.top;
+  CHS.forEach((ch, i) => {
+    ch.cy     = CH_H * (i + 0.5);
+    ch.sig    = new Float32Array(SIG_W);
+    ch.bf     = -1;      // beat frame, -1 = idle
+    ch.bpass  = true;
+    ch.flash  = 0;
+    ch.floats = [];      // floating task labels
   });
-  hero.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
-  window.addEventListener('resize', () => { nodes = null; init(); });
 
   function animate() {
-    const dpr = window.devicePixelRatio || 1;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+    frame++;
 
-    for (const n of nodes) {
-      const mdx = n.x - mouse.x, mdy = n.y - mouse.y;
-      const md  = Math.sqrt(mdx*mdx + mdy*mdy);
-      if (md < 110 && md > 0) {
-        const f = (110 - md) / 110 * 0.35;
-        n.vx += mdx / md * f;
-        n.vy += mdy / md * f;
-      }
-      n.vx *= 0.984; n.vy *= 0.984;
-      n.x  += n.vx;  n.y  += n.vy;
-      if (n.x < -12) n.x = W + 12; else if (n.x > W + 12) n.x = -12;
-      if (n.y < -12) n.y = H + 12; else if (n.y > H + 12) n.y = -12;
+    // Background + grid
+    ctx.fillStyle = '#FAFAFA';
+    ctx.fillRect(0, 0, W, H);
+    const step = Math.round(SIG_W / 8);
+    ctx.strokeStyle = 'rgba(0,0,0,0.043)';
+    ctx.lineWidth = 1;
+    for (let x = PAD_L; x <= W - PAD_R; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
     }
 
-    // Connections
-    for (let i = 0; i < N; i++) {
-      for (let j = i + 1; j < N; j++) {
-        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-        const d  = Math.sqrt(dx*dx + dy*dy);
-        if (d < 115) {
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(124,58,237,${(1 - d/115) * 0.11})`;
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
-        }
+    CHS.forEach((ch, ci) => {
+      // Channel separator
+      if (ci > 0) {
+        ctx.beginPath();
+        ctx.moveTo(0, ci * CH_H);
+        ctx.lineTo(W, ci * CH_H);
+        ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
       }
-    }
 
-    // Nodes
-    for (const n of nodes) {
+      // Beat countdown
+      ch.nextBeat--;
+      if (ch.nextBeat <= 0 && ch.bf < 0) {
+        ch.bf    = 0;
+        ch.bpass = Math.random() > 0.22;
+        ch.flash = 1;
+        ch.floats.push({
+          x: W - PAD_R, alpha: 1,
+          label: TASKS[taskIdx++ % TASKS.length],
+          up: ch.bpass,
+        });
+        ch.nextBeat = 80 + Math.random() * 130;
+        if (ch.bpass) ch.score = Math.min(99.8, ch.score + Math.random() * 0.25 + 0.06);
+      }
+
+      // New signal sample
+      let sv;
+      if (ch.bf >= 0) {
+        sv = beatY(ch.bf, ch.bpass) + (Math.random() - 0.5) * 0.5;
+        if (++ch.bf > 72) ch.bf = -1;
+      } else {
+        sv = (Math.random() - 0.5) * 1.1;
+      }
+      ch.flash = Math.max(0, ch.flash - 0.055);
+
+      // Shift buffer and append
+      ch.sig.copyWithin(0, 1);
+      ch.sig[SIG_W - 1] = sv;
+
+      // --- Draw signal path ---
+      const maxAmp = CH_H * 0.4;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = n.col === 0
-        ? 'rgba(124,58,237,0.32)'
-        : 'rgba(8,145,178,0.24)';
-      ctx.fill();
-    }
+      for (let x = 0; x < SIG_W; x++) {
+        const px = PAD_L + x;
+        const py = ch.cy - Math.max(-maxAmp, Math.min(maxAmp, ch.sig[x]));
+        x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      const sg = ctx.createLinearGradient(PAD_L, 0, W - PAD_R, 0);
+      sg.addColorStop(0,    ch.color + '08');
+      sg.addColorStop(0.28, ch.color + '38');
+      sg.addColorStop(0.72, ch.color + 'A0');
+      sg.addColorStop(1,    ch.color + 'EE');
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin  = 'round';
+      ctx.stroke();
 
-    ctx.restore();
+      // Flash glow on beat fire
+      if (ch.flash > 0) {
+        const fy = ch.cy - ch.sig[SIG_W - 1];
+        const r  = 18 * ch.flash;
+        const gd = ctx.createRadialGradient(W - PAD_R, fy, 0, W - PAD_R, fy, r);
+        const hex = Math.round(ch.flash * 72).toString(16).padStart(2, '0');
+        gd.addColorStop(0, ch.color + hex);
+        gd.addColorStop(1, ch.color + '00');
+        ctx.beginPath(); ctx.arc(W - PAD_R, fy, r, 0, Math.PI * 2);
+        ctx.fillStyle = gd; ctx.fill();
+      }
+
+      // Live cursor dot
+      const liveY = ch.cy - ch.sig[SIG_W - 1];
+      const pulse = Math.sin(frame * 0.09 + ci * 1.5) * 0.5 + 0.5;
+      ctx.beginPath(); ctx.arc(W - PAD_R, liveY, 3.5 + pulse * 2, 0, Math.PI * 2);
+      ctx.fillStyle = ch.color + '28'; ctx.fill();
+      ctx.beginPath(); ctx.arc(W - PAD_R, liveY, 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = ch.color; ctx.fill();
+
+      // Labels
+      const fSz = Math.max(8, Math.min(10, CH_H * 0.125));
+      const sSz = Math.max(10, Math.min(15, CH_H * 0.17));
+
+      ctx.font = `700 ${fSz}px Inter, sans-serif`;
+      ctx.fillStyle = ch.color;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(ch.name, 8, ch.cy);
+
+      ctx.font = `800 ${sSz}px Inter, sans-serif`;
+      ctx.fillStyle = ch.color;
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(ch.score.toFixed(1) + '%', W - 8, ch.cy);
+
+      // Floating task labels
+      ch.floats = ch.floats.filter(f => f.alpha > 0.03 && f.x > PAD_L);
+      ch.floats.forEach(f => {
+        f.x    -= 1.0;
+        f.alpha *= 0.987;
+        ctx.globalAlpha = f.alpha * 0.65;
+        ctx.font = `500 ${Math.max(7, fSz - 1)}px Inter, sans-serif`;
+        ctx.fillStyle    = f.up ? '#16a34a' : '#dc2626';
+        ctx.textAlign    = 'right';
+        ctx.textBaseline = f.up ? 'bottom' : 'top';
+        const fy = f.up ? ch.cy - CH_H * 0.32 : ch.cy + CH_H * 0.22;
+        ctx.fillText(f.label, f.x, fy);
+        ctx.globalAlpha = 1;
+      });
+    });
+
     requestAnimationFrame(animate);
   }
 
-  init();
   animate();
 })();
 
