@@ -108,10 +108,12 @@
     /* ── Hero race ── */
     .hero-race {
       width: 100%;
-      align-self: stretch;
-      border-top: 1px solid var(--border);
+      max-width: 680px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
       background: var(--bg);
       cursor: crosshair;
+      overflow: hidden;
       position: relative;
       z-index: 1;
     }
@@ -809,62 +811,78 @@ gsap.utils.toArray('.reveal').forEach(el => {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  const W   = canvas.offsetWidth || 1440;
-  const H   = 156;
+  const W   = canvas.offsetWidth || 680;
+  const H   = 164;
 
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.height = H + 'px';
   ctx.scale(dpr, dpr);
 
-  // Two panels: same delta story, very different meaning
   const PANELS = [
-    { bench: 'GPQA Diamond',  before: 0.913, after: 0.942, label: '+2.9 pts', verdict: 'noise',  color: '#EA580C', vColor: '#A1A1AA' },
+    { bench: 'GPQA Diamond',  before: 0.913, after: 0.942, label: '+2.9 pts',  verdict: 'noise',  color: '#EA580C', vColor: '#A1A1AA' },
     { bench: 'SWE-bench Pro', before: 0.534, after: 0.643, label: '+10.9 pts', verdict: 'signal', color: '#7c3aed', vColor: '#7c3aed' },
   ];
 
-  const PAD   = Math.max(28, Math.min(72, W * 0.055));
+  const PAD   = Math.max(28, Math.min(64, W * 0.06));
   const MID   = W / 2;
   const BAR_H = 36;
-  const BAR_Y = 56;
+  const BAR_Y = 60;
   const CEIL  = 0.90;
+  const CYCLE = 5200; // ms per loop
+
+  const ease  = t => 1 - Math.pow(1 - t, 3);
+  const phase = (t, a, b) => ease(Math.max(0, Math.min(1, (t - a) / (b - a))));
 
   const mouse = { x: -1, y: -1, over: false };
+  let paused  = false;
+
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) * (W / r.width);
     mouse.y = (e.clientY - r.top)  * (H / r.height);
-    mouse.over = true;
   });
-  canvas.addEventListener('mouseleave', () => { mouse.over = false; });
+  canvas.addEventListener('mouseenter', () => { paused = true;  mouse.over = true;  });
+  canvas.addEventListener('mouseleave', () => { paused = false; mouse.over = false; });
 
-  let prog = 0, raf;
-  const ease = t => 1 - Math.pow(1 - t, 3);
-
-  function draw() {
+  function draw(ts) {
     ctx.clearRect(0, 0, W, H);
-    prog = Math.min(1, prog + 0.016);
 
-    const baseProg  = ease(Math.min(1, prog * 1.5));
-    const deltaProg = ease(Math.max(0, (prog - 0.55) / 0.45));
-    const hovPanel  = mouse.over ? (mouse.x < MID ? 0 : 1) : -1;
+    // Cycle-based animation state (pauses on hover, shows full state)
+    let deltaA, verdictA;
+    if (paused) {
+      deltaA = 1; verdictA = 1;
+    } else {
+      const t = (ts % CYCLE) / CYCLE;
+      deltaA   = t < 0.12 ? 0
+               : t < 0.38 ? phase(t, 0.12, 0.38)
+               : t < 0.82 ? 1
+               : t < 0.93 ? 1 - phase(t, 0.82, 0.93)
+               : 0;
+      verdictA = t < 0.30 ? 0
+               : t < 0.50 ? phase(t, 0.30, 0.50)
+               : t < 0.82 ? 1
+               : t < 0.93 ? 1 - phase(t, 0.82, 0.93)
+               : 0;
+    }
+
+    const hovPanel = mouse.over ? (mouse.x < MID ? 0 : 1) : -1;
 
     // Divider
     ctx.beginPath();
-    ctx.moveTo(MID, 12); ctx.lineTo(MID, H - 12);
-    ctx.strokeStyle = 'rgba(0,0,0,0.07)';
-    ctx.lineWidth = 1; ctx.stroke();
+    ctx.moveTo(MID, 14); ctx.lineTo(MID, H - 14);
+    ctx.strokeStyle = 'rgba(0,0,0,0.07)'; ctx.lineWidth = 1; ctx.stroke();
 
     PANELS.forEach((p, idx) => {
-      const pX   = idx * MID;
-      const barX = pX + PAD;
-      const barW = MID - PAD * 2;
-      const hov  = hovPanel === idx;
+      const pX       = idx * MID;
+      const barX     = pX + PAD;
+      const barW     = MID - PAD * 2;
+      const hov      = hovPanel === idx;
+      const fBase    = p.before * barW;
+      const maxDelta = (p.after - p.before) * barW;
+      const drawn    = maxDelta * deltaA;
 
-      const fBase  = p.before * barW * baseProg;
-      const fDelta = (p.after - p.before) * barW * deltaProg;
-
-      // Ceiling marker (left panel only) — drawn behind bar
+      // Ceiling line (left panel only)
       if (idx === 0) {
         const cx = barX + CEIL * barW;
         ctx.beginPath(); ctx.moveTo(cx, BAR_Y - 10); ctx.lineTo(cx, BAR_Y + BAR_H + 10);
@@ -880,67 +898,62 @@ gsap.utils.toArray('.reveal').forEach(el => {
       rrect(ctx, barX, BAR_Y, barW, BAR_H, 5);
       ctx.fillStyle = '#E4E4E9'; ctx.fill();
 
-      // Base fill (muted gray — the "before" score)
-      if (fBase > 1) {
-        rrect(ctx, barX, BAR_Y, fBase, BAR_H, 5);
-        ctx.fillStyle = '#C8C8D0'; ctx.fill();
-      }
+      // Base (static — the "before" score)
+      rrect(ctx, barX, BAR_Y, fBase, BAR_H, 5);
+      ctx.fillStyle = '#C8C8D0'; ctx.fill();
 
-      // Delta fill (colored — the gain)
-      if (fDelta > 0.5) {
-        rrect(ctx, barX + fBase, BAR_Y, fDelta, BAR_H, 4);
+      // Delta (grows in each cycle — the gain)
+      if (drawn > 0.5) {
+        rrect(ctx, barX + fBase, BAR_Y, drawn, BAR_H, 4);
         ctx.fillStyle = hov ? p.color : p.color + 'CC';
         ctx.fill();
       }
 
-      // Benchmark name + delta label below bar
-      const labelY = BAR_Y + BAR_H + 11;
+      // Benchmark · delta label
+      const lblY = BAR_Y + BAR_H + 11;
       ctx.font = '500 11px Inter, sans-serif';
       ctx.fillStyle = '#A1A1AA';
       ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText(p.bench + ' · ' + p.label, barX, labelY);
+      ctx.fillText(p.bench + ' · ' + p.label, barX, lblY);
 
-      // Verdict
-      ctx.font = '700 15px Inter, sans-serif';
-      ctx.fillStyle = p.vColor;
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText(p.verdict, barX, labelY + 16);
+      // Verdict (fades in after delta)
+      if (verdictA > 0) {
+        ctx.globalAlpha = verdictA;
+        ctx.font = '700 15px Inter, sans-serif';
+        ctx.fillStyle = p.vColor;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillText(p.verdict, barX, lblY + 16);
+        ctx.globalAlpha = 1;
+      }
 
-      // Hover tooltip — score range pill above delta region
-      if (hov && prog >= 1) {
-        const label  = `${(p.before * 100).toFixed(1)}% → ${(p.after * 100).toFixed(1)}%`;
-        ctx.font     = '600 11px Inter, sans-serif';
-        const tw     = ctx.measureText(label).width;
-        const tipMid = barX + fBase + fDelta / 2;
-        const tipX   = Math.max(barX + tw / 2 + 8, Math.min(tipMid, pX + MID - PAD - tw / 2 - 8));
-        const tipY   = BAR_Y - 32;
-
+      // Hover tooltip (only while paused)
+      if (hov && paused) {
+        const label = `${(p.before * 100).toFixed(1)}% → ${(p.after * 100).toFixed(1)}%`;
+        ctx.font = '600 11px Inter, sans-serif';
+        const tw   = ctx.measureText(label).width;
+        const tipM = barX + fBase + maxDelta / 2;
+        const tipX = Math.max(barX + tw / 2 + 8, Math.min(tipM, pX + MID - PAD - tw / 2 - 8));
+        const tipY = BAR_Y - 32;
         rrect(ctx, tipX - tw / 2 - 8, tipY - 9, tw + 16, 20, 5);
         ctx.fillStyle = '#18181B'; ctx.fill();
-
-        // Arrow
         ctx.beginPath();
         ctx.moveTo(tipX - 5, tipY + 11); ctx.lineTo(tipX + 5, tipY + 11); ctx.lineTo(tipX, tipY + 18);
         ctx.fillStyle = '#18181B'; ctx.closePath(); ctx.fill();
-
-        ctx.fillStyle    = '#F4F4F5';
-        ctx.textAlign    = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#F4F4F5';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(label, tipX, tipY + 1);
       }
     });
 
-    if (prog < 1 || mouse.over) raf = requestAnimationFrame(draw);
+    requestAnimationFrame(draw);
   }
 
-  canvas.addEventListener('mouseenter', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); });
-  draw();
+  requestAnimationFrame(draw);
 
   window.addEventListener('resize', () => {
     const nW = canvas.offsetWidth;
     canvas.width = nW * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    prog = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(draw);
   });
 })();
 
