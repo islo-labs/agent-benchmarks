@@ -812,31 +812,40 @@ gsap.utils.toArray('.reveal').forEach(el => {
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.offsetWidth || 680;
-  const H   = 164;
+  const H   = 180;
 
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.height = H + 'px';
   ctx.scale(dpr, dpr);
 
-  // 5 models, each with a score on two benchmarks.
-  // GPQA scores cluster tightly near ceiling → looks like noise.
-  // SWE scores are spread across a wide range → looks like signal.
+  // Each model races from 0 to its score each cycle.
+  // GPQA: all finish neck-and-neck → noise.
+  // SWE:  finish at wildly different positions → signal.
   const MODELS = [
-    { color: '#7c3aed', phase: 0.00, gpqa: 0.942, swe: 0.643 },
-    { color: '#0891b2', phase: 1.26, gpqa: 0.913, swe: 0.534 },
-    { color: '#d97706', phase: 2.51, gpqa: 0.931, swe: 0.587 },
-    { color: '#16a34a', phase: 3.77, gpqa: 0.957, swe: 0.712 },
-    { color: '#ec4899', phase: 5.03, gpqa: 0.922, swe: 0.468 },
+    { name: 'GPT-4o',  color: '#7c3aed', gpqa: 0.942, swe: 0.643 },
+    { name: 'Claude',  color: '#0891b2', gpqa: 0.913, swe: 0.534 },
+    { name: 'Gemini',  color: '#d97706', gpqa: 0.931, swe: 0.587 },
+    { name: 'Llama 3', color: '#16a34a', gpqa: 0.957, swe: 0.712 },
+    { name: 'Mistral', color: '#ec4899', gpqa: 0.922, swe: 0.468 },
   ];
-  const SPEEDS = [0.00070, 0.00092, 0.00065, 0.00110, 0.00084];
 
-  const PAD     = Math.max(24, Math.min(56, W * 0.055));
+  const PAD     = Math.max(20, Math.min(44, W * 0.044));
+  const LBL     = Math.min(54, Math.max(36, W * 0.086));
   const MID     = W / 2;
   const CEIL    = 0.90;
-  const BAR_H   = 12;
-  const GAP     = 7;
-  const START_Y = 44;
+  const BAR_H   = 16;
+  const GAP     = 8;
+  const START_Y = 36;
+
+  // Cycle timing (ms)
+  const T_WAIT  = 350;
+  const T_RACE  = 1800;
+  const T_HOLD  = 1500;
+  const T_RESET = 450;
+  const CYCLE   = T_WAIT + T_RACE + T_HOLD + T_RESET;
+
+  const ease = t => 1 - Math.pow(1 - t, 3);
 
   const mouse = { x: -1, y: -1, over: false };
   canvas.addEventListener('mousemove', e => {
@@ -850,17 +859,28 @@ gsap.utils.toArray('.reveal').forEach(el => {
   function draw(ts) {
     ctx.clearRect(0, 0, W, H);
 
-    // Live scores: each model oscillates gently around its target
-    const live = MODELS.map((m, i) => ({
-      gpqa: m.gpqa + Math.sin(ts * SPEEDS[i]       + m.phase) * 0.012,
-      swe:  m.swe  + Math.sin(ts * SPEEDS[i] * 1.4 + m.phase + 1) * 0.022,
-    }));
+    // Race progress and verdict alpha from cycle position
+    const ph = ts % CYCLE;
+    let raceP, verdictA;
+    if (ph < T_WAIT) {
+      raceP = 0; verdictA = 0;
+    } else if (ph < T_WAIT + T_RACE) {
+      raceP    = ease((ph - T_WAIT) / T_RACE);
+      verdictA = 0;
+    } else if (ph < T_WAIT + T_RACE + T_HOLD) {
+      raceP    = 1;
+      verdictA = ease(Math.min(1, (ph - T_WAIT - T_RACE) / 280));
+    } else {
+      const rp = (ph - T_WAIT - T_RACE - T_HOLD) / T_RESET;
+      raceP    = 1 - ease(rp);
+      verdictA = Math.max(0, 1 - ease(rp * 2.5));
+    }
 
     const hovPanel = mouse.over ? (mouse.x < MID ? 0 : 1) : -1;
 
     const PANELS = [
-      { bench: 'GPQA Diamond',  verdict: 'noise',  vColor: '#A1A1AA', hasCeil: true,  vals: live.map(s => s.gpqa) },
-      { bench: 'SWE-bench Pro', verdict: 'signal', vColor: '#7c3aed', hasCeil: false, vals: live.map(s => s.swe)  },
+      { bench: 'GPQA Diamond',  verdict: 'noise',  vColor: '#A1A1AA', hasCeil: true,  vals: MODELS.map(m => m.gpqa) },
+      { bench: 'SWE-bench Pro', verdict: 'signal', vColor: '#7c3aed', hasCeil: false, vals: MODELS.map(m => m.swe)  },
     ];
 
     // Divider
@@ -870,48 +890,73 @@ gsap.utils.toArray('.reveal').forEach(el => {
 
     PANELS.forEach((p, idx) => {
       const pX      = idx * MID;
-      const barX    = pX + PAD;
-      const barW    = MID - PAD * 2;
+      const barX    = pX + PAD + LBL + 6;
+      const barW    = MID - PAD - LBL - 6 - PAD;
       const hov     = hovPanel === idx;
       const barsBot = START_Y + MODELS.length * (BAR_H + GAP) - GAP;
+      const leader  = p.vals.indexOf(Math.max(...p.vals));
 
-      // Ceiling line (left panel only)
+      // Ceiling line
       if (p.hasCeil) {
         const cx = barX + CEIL * barW;
-        ctx.beginPath(); ctx.moveTo(cx, START_Y - 6); ctx.lineTo(cx, barsBot + 6);
+        ctx.beginPath(); ctx.moveTo(cx, START_Y - 4); ctx.lineTo(cx, barsBot + 4);
         ctx.strokeStyle = 'rgba(234,88,12,0.28)';
         ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
-        // Ceiling label shares the top row with bench name (right side of panel)
         ctx.font = '500 9px Inter, sans-serif';
         ctx.fillStyle = 'rgba(234,88,12,0.45)';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('ceiling', cx, 20);
+        ctx.fillText('ceiling', cx, 18);
       }
 
-      // Benchmark name
+      // Benchmark label
       ctx.font = '500 11px Inter, sans-serif';
       ctx.fillStyle = '#A1A1AA';
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText(p.bench, barX, 20);
+      ctx.fillText(p.bench, pX + PAD, 18);
 
-      // Bars — the whole story is in these lengths
       MODELS.forEach((m, i) => {
         const barY  = START_Y + i * (BAR_H + GAP);
-        const fillW = Math.max(2, p.vals[i] * barW);
+        const fillW = p.vals[i] * barW * raceP;
+        const cy    = barY + BAR_H / 2;
 
+        // Model name
+        ctx.font = '500 10px Inter, sans-serif';
+        ctx.fillStyle = (i === leader || hov) ? m.color : '#C4C4C8';
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(m.name, barX - 8, cy);
+
+        // Track
         rrect(ctx, barX, barY, barW, BAR_H, 3);
         ctx.fillStyle = '#E4E4E9'; ctx.fill();
 
-        rrect(ctx, barX, barY, fillW, BAR_H, 3);
-        ctx.fillStyle = hov ? m.color : m.color + 'BB';
-        ctx.fill();
+        // Gradient bar
+        if (fillW > 1) {
+          const grad = ctx.createLinearGradient(barX, 0, barX + fillW, 0);
+          grad.addColorStop(0, m.color + '55');
+          grad.addColorStop(1, m.color + (hov ? 'FF' : 'CC'));
+          rrect(ctx, barX, barY, fillW, BAR_H, 3);
+          ctx.fillStyle = grad; ctx.fill();
+        }
+
+        // Leader tip glow
+        if (i === leader && fillW > 6) {
+          const glow = ctx.createRadialGradient(barX + fillW, cy, 0, barX + fillW, cy, 16);
+          glow.addColorStop(0, m.color + '44');
+          glow.addColorStop(1, m.color + '00');
+          ctx.beginPath(); ctx.arc(barX + fillW, cy, 16, 0, Math.PI * 2);
+          ctx.fillStyle = glow; ctx.fill();
+        }
       });
 
-      // Verdict
-      ctx.font = '700 14px Inter, sans-serif';
-      ctx.fillStyle = p.vColor;
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText(p.verdict, barX, barsBot + 10);
+      // Verdict fades in after race
+      if (verdictA > 0) {
+        ctx.globalAlpha = verdictA;
+        ctx.font = '700 14px Inter, sans-serif';
+        ctx.fillStyle = p.vColor;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillText(p.verdict, pX + PAD, barsBot + 10);
+        ctx.globalAlpha = 1;
+      }
     });
 
     requestAnimationFrame(draw);
