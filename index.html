@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agent Benchmarks — The Story</title>
+  <title>Learn how AI benchmarks work</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,58 +81,140 @@
 
     /* ── Hero ── */
     .hero {
-      min-height: 88vh;
+      min-height: auto;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 32px;
+      flex-direction: column;
+      align-items: stretch;
+      max-width: none;
+      margin: 0;
+      padding: 96px 40px 72px;
       background: var(--white);
       position: relative;
-      overflow: hidden;
+      gap: 0;
     }
     .hero-bg {
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse 70% 50% at 50% 65%, #f5f3ff 0%, transparent 70%);
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 40%, #f5f3ff 0%, transparent 60%),
+        linear-gradient(180deg, transparent 0%, #fafafa 100%);
       pointer-events: none;
-    }
-    #hero-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
+      z-index: 0;
     }
     .hero-inner {
-      max-width: 640px;
-      text-align: center;
       position: relative;
       z-index: 1;
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 56px;
     }
+
+    /* ── Hero atmospheric viz ── */
+    .hero-board-wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .hero-atmos {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+    }
+    .hero-atmos canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* Labels overlaying the atmospheric viz */
+    .ha-label {
+      position: absolute;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--faint);
+      pointer-events: none;
+      z-index: 2;
+      font-variant-numeric: tabular-nums;
+      transition: opacity .25s ease;
+    }
+    .ha-label-tl { top: 4px; left: 4px; }
+    .ha-label-tr { top: 4px; right: 4px; display: flex; align-items: center; gap: 6px; color: var(--purple); }
+    .ha-label-bl { bottom: 4px; left: 4px; color: var(--muted); font-weight: 600; display: flex; gap: 14px; }
+    .ha-label-br { bottom: 4px; right: 4px; color: var(--muted); font-weight: 600; }
+    .hero-atmos:hover .ha-label-br { opacity: 0; }
+
+    /* Hover tooltip for inspecting dots */
+    .ha-tip {
+      position: absolute;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, calc(-100% - 14px));
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-width: 200px;
+      max-width: 260px;
+      box-shadow: 0 12px 32px -12px rgba(24,24,27,.18), 0 4px 10px -4px rgba(124,58,237,.12);
+      transition: opacity .18s ease;
+    }
+    .ha-tip.visible { opacity: 1; }
+    .ha-tip-head {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 9.5px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; margin-bottom: 5px;
+    }
+    .ha-tip-swatch { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .ha-tip-title { font-size: 12.5px; font-weight: 700; color: var(--text); letter-spacing: -.01em; margin-bottom: 3px; }
+    .ha-tip-body { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+    .ha-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -5px;
+      transform: translateX(-50%) rotate(45deg);
+      width: 9px; height: 9px;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
     .eyebrow {
       font-size: 11px;
       font-weight: 600;
       letter-spacing: .1em;
       text-transform: uppercase;
       color: var(--purple);
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 22px; height: 1px; background: var(--purple); opacity: .5;
     }
     h1 {
       font-family: 'DM Serif Display', Georgia, serif;
-      font-size: clamp(36px, 6vw, 58px);
+      font-size: clamp(40px, 4.8vw, 64px);
       font-weight: 400;
-      line-height: 1.08;
-      letter-spacing: -.02em;
+      line-height: 1.02;
+      letter-spacing: -.025em;
       color: var(--text);
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
     h1 i { color: var(--purple-lt); font-style: italic; }
     .hero-sub {
       font-size: 17px;
       color: var(--muted);
-      line-height: 1.65;
-      max-width: 460px;
-      margin: 0 auto 48px;
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto 36px;
     }
     .start-btn {
       display: inline-flex;
@@ -490,13 +572,39 @@
     /* ── Scroll reveals ── */
     .reveal { opacity: 0; transform: translateY(28px); }
 
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 48px 20px 40px;
+        min-height: auto;
+      }
+      .hero-inner { text-align: left; }
+      .hero-sub { margin-left: 0; }
+    }
     @media (max-width: 760px) {
-      h1 { font-size: 30px; }
+      h1 { font-size: 34px; }
 
       .nav-inner { padding: 0 16px; }
 
-      .hero { padding: 48px 20px; min-height: 75vh; }
+      /* Hero — re-center text, reduce gap, make canvas taller */
+      .hero { padding: 48px 16px 36px; }
+      .hero-inner { text-align: center; margin-bottom: 28px; }
+      .hero-board-wrap { padding: 0; }
+      .hero-atmos { aspect-ratio: 3 / 2; }
+      .hero-atmos canvas { touch-action: pan-y; }
+      /* Tooltip: position below the dot on mobile so it doesn't clip at top */
+      .ha-tip { transform: translate(-50%, 14px); }
+      .ha-tip::after { top: -5px; bottom: auto; transform: translateX(-50%) rotate(225deg); }
+
       .hero-sub { font-size: 15px; }
+
+      .hb-colhead, .hb-row { grid-template-columns: 16px 1.3fr 0.7fr 0.7fr; gap: 8px; padding: 11px 14px; }
+      .hb-colhead .col-bar, .hb-row .hb-bar-cell { display: none; }
+      .hb-name-text { font-size: 12px; }
+      .hb-detail-inner { grid-template-columns: 1fr; padding: 12px 14px 14px 38px; gap: 10px; }
+      .hb-head { padding: 12px 14px; }
+      .hb-footer { padding: 10px 14px; flex-direction: column; align-items: flex-start; gap: 6px; }
 
       .chapter { padding: 48px 20px; }
       .chapter-inner { grid-template-columns: 1fr; gap: 28px; }
@@ -509,6 +617,9 @@
       .split-vis { grid-template-columns: 1fr; gap: 14px; }
       .split-closing { font-size: 15px; }
 
+      /* CTA */
+      .cta { padding: 64px 20px; }
+
       .further { padding: 48px 20px; }
       .fr-grid { grid-template-columns: 1fr; gap: 12px; }
 
@@ -516,9 +627,94 @@
 
       .footer-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
     }
+
+    /* ── Sticky share bar ── */
+    .sticky-share {
+      position: fixed;
+      bottom: 20px; left: 50%; right: auto;
+      transform: translateX(-50%) translateY(calc(100% + 20px));
+      z-index: 200;
+      transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease;
+      opacity: 0;
+      pointer-events: none;
+      width: calc(100% - 48px);
+      max-width: 900px;
+    }
+    .sticky-share.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sticky-share-inner {
+      padding: 10px 10px 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px -8px rgba(24,24,27,.14), 0 2px 8px -2px rgba(24,24,27,.06);
+    }
+    .sticky-share-msg {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sticky-share-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .sticky-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 100px;
+      font-size: 12.5px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border); background: var(--white);
+      color: var(--text); text-decoration: none;
+      transition: background .15s, box-shadow .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .sticky-btn:hover { background: var(--bg); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .sticky-btn-x { background: #000; color: #fff; border-color: #000; }
+    .sticky-btn-x:hover { background: #222; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+    .sticky-btn-copy.copied { border-color: #16a34a; color: #16a34a; }
+    .sticky-close {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--faint); cursor: pointer; font-size: 16px; line-height: 1;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .sticky-close:hover { background: var(--bg); color: var(--text); }
+    @media (max-width: 600px) {
+      .sticky-share { width: calc(100% - 32px); bottom: 16px; }
+      .sticky-share-msg { display: none; }
+      .sticky-share-inner { padding: 8px 8px 8px 16px; }
+    }
   </style>
 </head>
 <body>
+
+<!-- ── Sticky share bar ── -->
+<div class="sticky-share" id="sticky-share" role="complementary" aria-label="Share this page">
+  <div class="sticky-share-inner">
+    <span class="sticky-share-msg">Found this useful? Send it to someone who reads benchmark papers.</span>
+    <div class="sticky-share-actions">
+      <a id="sticky-tweet" href="#" target="_blank" rel="noopener" class="sticky-btn sticky-btn-x">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Share on X
+      </a>
+      <button class="sticky-btn sticky-btn-copy" id="sticky-copy">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V2.5A1.5 1.5 0 0 1 4.5 1H11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span>Copy link</span>
+      </button>
+    </div>
+    <button class="sticky-close" id="sticky-close" aria-label="Dismiss">×</button>
+  </div>
+</div>
 
 <nav>
   <div class="nav-inner">
@@ -533,24 +729,33 @@
 <!-- ── Hero ── -->
 <section class="hero" id="hero-section">
   <div class="hero-bg"></div>
-  <canvas id="hero-canvas"></canvas>
   <div class="hero-inner">
-    <div class="eyebrow">Agent Benchmarks · 2026</div>
-    <h1>Every AI breakthrough starts<br>with a <i>benchmark</i></h1>
+    <h1>Every AI breakthrough<br>starts with a <i>benchmark</i>.</h1>
     <p class="hero-sub">Standardized tests that shape billions in research, define what "better" means, and decide which models lead the field. Every engineer should know how to read one.</p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       <a class="start-btn" href="#ch-bench">
-        Start
+        Learn how
         <svg class="scroll-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M8 3v10M4 9.5l4 3.5 4-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
       <a class="start-btn" href="landscape.html" style="color:var(--muted);border-color:var(--border);background:var(--white);">
-        View all benchmarks
+        All benchmarks
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
+    </div>
+  </div>
+
+  <div class="hero-board-wrap">
+    <div class="hero-atmos" id="hero-atmos">
+      <canvas id="hero-canvas"></canvas>
+      <div class="ha-tip" id="ha-tip">
+        <div class="ha-tip-head"><span class="ha-tip-swatch"></span><span class="ha-tip-kicker">&nbsp;</span></div>
+        <div class="ha-tip-title">&nbsp;</div>
+        <div class="ha-tip-body">&nbsp;</div>
+      </div>
     </div>
   </div>
 </section>
@@ -765,7 +970,7 @@
 <script>
 // ─── Tweet button ────────────────────────────────────────────────────────────
 (function() {
-  const text = "Opus 4.7 dropped this week. SWE-bench Pro: +11 pts — that means something. GPQA Diamond: +3 pts at 94% — that's noise. Same release, two very different signals. Here's how to tell them apart:";
+  const text = "Most AI benchmark headlines miss the point. A +11 pt jump near 50% is a leap forward. A +3 pt jump near 90% is noise. Here's how to tell the difference (by @islolabs):";
   const url  = "https://agent-benchmarks.com";
   const href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + url);
 
@@ -793,94 +998,237 @@ gsap.utils.toArray('.reveal').forEach(el => {
   });
 });
 
-// ─── Hero network ────────────────────────────────────────────────────────────
+
+// ─── Hero atmospheric viz ─────────────────────────────────────────────────────
 (function () {
   const canvas = document.getElementById('hero-canvas');
-  const ctx    = canvas.getContext('2d');
-  const hero   = document.getElementById('hero-section');
-  const N      = 44;
-  let W, H, nodes;
-  let mouse = { x: -9999, y: -9999 };
+  if (!canvas) return;
+  const tip = document.getElementById('ha-tip');
+  const tipSwatch = tip.querySelector('.ha-tip-swatch');
+  const tipKicker = tip.querySelector('.ha-tip-kicker');
+  const tipTitle = tip.querySelector('.ha-tip-title');
+  const tipBody = tip.querySelector('.ha-tip-body');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  let W = 0, H = 0;
 
-  function init() {
-    const dpr  = window.devicePixelRatio || 1;
-    const rect = hero.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    if (!nodes) {
-      nodes = Array.from({ length: N }, () => ({
-        x:   Math.random() * W,
-        y:   Math.random() * H,
-        vx:  (Math.random() - 0.5) * 0.22,
-        vy:  (Math.random() - 0.5) * 0.22,
-        r:   1.5 + Math.random() * 1.8,
-        col: Math.random() > 0.52 ? 0 : 1  // 0=purple 1=teal
-      }));
+  const COLS = 28;
+  const ROWS = 12;
+  const TOTAL = COLS * ROWS;
+  const INSET_X = 0.015;
+  const INSET_Y = 0.05;
+
+  // Category definitions — explain what goes into a benchmark.
+  const CATEGORIES = {
+    task:          { color: '#18181B', kicker: 'The task',            title: 'Input task',                  body: 'One real GitHub issue. The model reads the repo, understands the bug, and produces a patch.' },
+    harness:       { color: '#18181B', kicker: 'The harness',         title: 'Test harness',                body: 'Runs the model\'s patch against the project\'s own test suite. Pass/fail is decided by tests, not opinions.' },
+    grader:        { color: '#18181B', kicker: 'The grader',          title: 'Auto-grader',                 body: 'Matches model output against known answers. Cheap to run, but only as strict as the test it executes.' },
+    sampling:      { color: '#18181B', kicker: 'Sampling',            title: 'Sampled task',                body: '500 tasks out of millions of possible bugs. Results are a statistic — ±2σ of noise is baked in.' },
+    contamination: { color: '#7c3aed', kicker: 'Contamination',       title: 'Contaminated task',           body: 'This task (or its solution) leaked into pre-training data. The model may be recalling, not reasoning.' },
+    cheat:         { color: '#7c3aed', kicker: 'Cheat surface',       title: 'Exploitable task',            body: 'The harness can be gamed — e.g. reading test fixtures at runtime — without actually solving the bug.' },
+    saturated:     { color: '#7c3aed', kicker: 'Saturated',           title: 'Saturated task',              body: 'Top models already score ~100% here. Extra points are noise — the task no longer separates models.' },
+  };
+
+  // Assign each cell a category. Most are plain "task"; ~3 small clusters carry special labels.
+  const CAT_KEYS = Object.keys(CATEGORIES);
+  const cells = [];
+  for (let i = 0; i < TOTAL; i++) {
+    cells.push({
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.5,
+      cat: 'task',
+      wake: Math.random() * 2.2,
+    });
+  }
+  // Seed special regions
+  function seedRegion(key, cx, cy, radius, density) {
+    for (let i = 0; i < TOTAL; i++) {
+      const col = i % COLS, row = Math.floor(i / COLS);
+      const d = Math.hypot(col - cx, row - cy);
+      if (d < radius && Math.random() < density) cells[i].cat = key;
     }
   }
+  seedRegion('contamination', 7, 3, 2.8, 0.55);
+  seedRegion('contamination', 21, 9, 2.6, 0.5);
+  seedRegion('cheat', 14, 6, 2.4, 0.6);
+  seedRegion('harness', 3, 9, 2.2, 0.5);
+  seedRegion('grader', 24, 2, 2.2, 0.5);
+  seedRegion('saturated', 18, 10, 2.2, 0.55);
+  seedRegion('sampling', 10, 10, 2.2, 0.4);
 
-  hero.addEventListener('mousemove', e => {
-    const r = hero.getBoundingClientRect();
+  let mouse = { x: -1, y: -1, active: false };
+  let hovered = -1;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    W = rect.width;
+    H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function pickCell(mx, my) {
+    const padX = W * INSET_X;
+    const padY = H * INSET_Y;
+    const cellW = (W - padX * 2) / COLS;
+    const cellH = (H - padY * 2) / ROWS;
+    const col = Math.floor((mx - padX) / cellW);
+    const row = Math.floor((my - padY) / cellH);
+    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return -1;
+    return row * COLS + col;
+  }
+
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
     mouse.x = e.clientX - r.left;
     mouse.y = e.clientY - r.top;
+    mouse.active = true;
+    const idx = pickCell(mouse.x, mouse.y);
+    if (idx !== hovered) {
+      hovered = idx;
+      if (idx >= 0) {
+        const c = cells[idx];
+        const cat = CATEGORIES[c.cat];
+        tipSwatch.style.background = cat.color;
+        tipKicker.textContent = cat.kicker;
+        tipKicker.style.color = cat.color;
+        tipTitle.textContent = cat.title;
+        tipBody.textContent = cat.body;
+      }
+    }
+    if (idx >= 0) {
+      // position tooltip above the cell
+      const padX = W * INSET_X, padY = H * INSET_Y;
+      const cellW = (W - padX * 2) / COLS, cellH = (H - padY * 2) / ROWS;
+      const col = idx % COLS, row = Math.floor(idx / COLS);
+      const cx = padX + col * cellW + cellW / 2;
+      const cy = padY + row * cellH + cellH / 2;
+      // clamp horizontally so tip stays in view
+      const clampedX = Math.max(120, Math.min(W - 120, cx));
+      tip.style.left = clampedX + 'px';
+      tip.style.top = cy + 'px';
+      tip.classList.add('visible');
+    } else {
+      tip.classList.remove('visible');
+    }
   });
-  hero.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
-  window.addEventListener('resize', () => { nodes = null; init(); });
+  canvas.addEventListener('mouseleave', () => {
+    mouse.active = false;
+    hovered = -1;
+    tip.classList.remove('visible');
+  });
 
-  function animate() {
-    const dpr = window.devicePixelRatio || 1;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.scale(dpr, dpr);
-
-    for (const n of nodes) {
-      const mdx = n.x - mouse.x, mdy = n.y - mouse.y;
-      const md  = Math.sqrt(mdx*mdx + mdy*mdy);
-      if (md < 110 && md > 0) {
-        const f = (110 - md) / 110 * 0.35;
-        n.vx += mdx / md * f;
-        n.vy += mdy / md * f;
-      }
-      n.vx *= 0.984; n.vy *= 0.984;
-      n.x  += n.vx;  n.y  += n.vy;
-      if (n.x < -12) n.x = W + 12; else if (n.x > W + 12) n.x = -12;
-      if (n.y < -12) n.y = H + 12; else if (n.y > H + 12) n.y = -12;
-    }
-
-    // Connections
-    for (let i = 0; i < N; i++) {
-      for (let j = i + 1; j < N; j++) {
-        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-        const d  = Math.sqrt(dx*dx + dy*dy);
-        if (d < 115) {
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(124,58,237,${(1 - d/115) * 0.11})`;
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
-        }
-      }
-    }
-
-    // Nodes
-    for (const n of nodes) {
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = n.col === 0
-        ? 'rgba(124,58,237,0.32)'
-        : 'rgba(8,145,178,0.24)';
-      ctx.fill();
-    }
-
-    ctx.restore();
-    requestAnimationFrame(animate);
+  // Touch: tap a dot to see its tooltip, auto-dismisses after 2.5 s
+  let touchTimer;
+  function showTip(idx, cx, cy) {
+    const c = cells[idx];
+    const cat = CATEGORIES[c.cat];
+    tipSwatch.style.background = cat.color;
+    tipKicker.textContent = cat.kicker;
+    tipKicker.style.color = cat.color;
+    tipTitle.textContent = cat.title;
+    tipBody.textContent = cat.body;
+    tip.style.left = Math.max(100, Math.min(W - 100, cx)) + 'px';
+    tip.style.top  = cy + 'px';
+    tip.classList.add('visible');
   }
+  canvas.addEventListener('touchstart', e => {
+    const r = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const mx = touch.clientX - r.left;
+    const my = touch.clientY - r.top;
+    const idx = pickCell(mx, my);
+    if (idx < 0) return;
+    hovered = idx;
+    const padX = W * INSET_X, padY = H * INSET_Y;
+    const cW = (W - padX * 2) / COLS, cH = (H - padY * 2) / ROWS;
+    const col = idx % COLS, row = Math.floor(idx / COLS);
+    showTip(idx, padX + col * cW + cW / 2, padY + row * cH + cH / 2);
+    clearTimeout(touchTimer);
+    touchTimer = setTimeout(() => {
+      tip.classList.remove('visible');
+      hovered = -1;
+    }, 2500);
+  }, { passive: true });
 
-  init();
-  animate();
+  const startT = performance.now();
+  function frame(now) {
+    const t = (now - startT) / 1000;
+    ctx.clearRect(0, 0, W, H);
+
+    const padX = W * INSET_X;
+    const padY = H * INSET_Y;
+    const gridW = W - padX * 2;
+    const gridH = H - padY * 2;
+    const cellW = gridW / COLS;
+    const cellH = gridH / ROWS;
+    const dot = Math.min(cellW, cellH) * 0.44;
+
+    const waveY = ((t * 0.22) % 1.4 - 0.2) * H;
+    const waveWidth = H * 0.45;
+
+    for (let i = 0; i < TOTAL; i++) {
+      const c = cells[i];
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      const cx = padX + col * cellW + cellW / 2;
+      const cy = padY + row * cellH + cellH / 2;
+
+      const wakeT = Math.min(1, Math.max(0, (t - c.wake) / 0.9));
+      if (wakeT <= 0) continue;
+
+      const dy = cy - waveY;
+      const wave = Math.exp(-(dy * dy) / (2 * waveWidth * waveWidth));
+
+      let mouseInf = 0;
+      if (mouse.active) {
+        const mdx = cx - mouse.x;
+        const mdy = cy - mouse.y;
+        const d = Math.sqrt(mdx * mdx + mdy * mdy);
+        mouseInf = Math.max(0, 1 - d / (Math.min(W, H) * 0.18));
+        mouseInf = mouseInf * mouseInf;
+      }
+
+      const breath = 0.5 + 0.5 * Math.sin(t * c.speed + c.phase);
+      const base = 0.18 + breath * 0.12 + wave * 0.55 + mouseInf * 0.7;
+      const intensity = Math.min(1, base) * wakeT;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, dot, 0, Math.PI * 2);
+      const isPurple = (c.cat === 'contamination' || c.cat === 'cheat' || c.cat === 'saturated');
+      if (isPurple) {
+        ctx.fillStyle = `rgba(124, 58, 237, ${0.18 + intensity * 0.72})`;
+      } else {
+        ctx.fillStyle = `rgba(24, 24, 27, ${0.09 + intensity * 0.48})`;
+      }
+      ctx.fill();
+
+      if (i === hovered) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, dot * 2.2, 0, Math.PI * 2);
+        ctx.strokeStyle = isPurple ? 'rgba(124, 58, 237, 0.8)' : 'rgba(24,24,27,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+
+    if (waveY > padY * 0.6 && waveY < H - padY * 0.6) {
+      ctx.beginPath();
+      ctx.moveTo(padX, waveY);
+      ctx.lineTo(W - padX, waveY);
+      ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();
+
 
 // ─── Shared helpers ──────────────────────────────────────────────────────────
 function bezierPt(p0, p1, p2, p3, t) {
@@ -913,186 +1261,372 @@ function rrect(ctx, x, y, w, h, r) {
   const { ctx, W, H } = setupCanvas('bench-canvas');
 
   const TASKS = [
-    { label: 'Fix: null ptr in sort()', tests: [1,1,1,0,1,1] },
-    { label: 'Implement: rate limiter', tests: [1,1,1,1,1,0] },
-    { label: 'Debug: off-by-one in loop', tests: [1,0,1,1,0,1] },
-    { label: 'Patch: SQL injection risk', tests: [1,1,1,1,1,1] },
-    { label: 'Fix: async race condition', tests: [1,1,0,1,1,0] },
+    { label: 'Fix null ptr in sort()',   pass: true  },
+    { label: 'Implement rate limiter',   pass: false },
+    { label: 'Debug off-by-one loop',    pass: true  },
+    { label: 'Patch SQL injection',      pass: true  },
+    { label: 'Fix async race condition', pass: true  },
+    { label: 'Add retry logic',          pass: false },
   ];
+  const TOTAL = 247;
 
-  let tidx = 0, phase = 'idle', timer = 0, frame = 0, agPulse = 0;
-  let taskAlpha = 0, currentTask = null, resultDots = [], resultsShown = 0;
-  let totalCorrect = 0, totalTests = 0;
+  let tidx = 0, frame = 0, pf = 0;
+  let phase = 'wait', current = null;
+  let cardX = 0, verdict = null, vX = 0, vAlpha = 0;
+  let nPass = 0, nDone = 0, scoreDisp = 0, scoreTarget = 0;
 
-  const cardHW = Math.min(56, W * 0.13);
-  const AGX = W * 0.5, AGY = H * 0.5, AGW = Math.min(88, W * 0.22), AGH = 42;
-  const CARD_X = W * 0.16, RES_X = W * 0.73, RES_Y = H * 0.33;
+  const STACK_X = W * 0.17, MODEL_X = W * 0.50, SCORE_X = W * 0.83, MID_Y = H * 0.50;
+  const easeIO = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
 
-  function nextTask() {
-    currentTask = TASKS[tidx++ % TASKS.length];
-    phase = 'loading'; timer = 0; taskAlpha = 0; resultDots = []; resultsShown = 0;
+  function next() {
+    current = TASKS[tidx++ % TASKS.length];
+    cardX = STACK_X; verdict = null; vAlpha = 0;
+    phase = 'fly'; pf = 0;
+  }
+
+  function drawCard(cx, cy, label, alpha) {
+    ctx.globalAlpha = alpha;
+    rrect(ctx, cx - 44, cy - 26, 88, 52, 8);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.font = '500 8.5px Inter, sans-serif'; ctx.fillStyle = '#52525B';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const words = label.split(' '); let ln = '', ls = [];
+    for (const w of words) {
+      const t = ln ? ln+' '+w : w;
+      if (ctx.measureText(t).width > 72 && ln) { ls.push(ln); ln = w; } else ln = t;
+    }
+    if (ln) ls.push(ln);
+    ls.forEach((l, i) => ctx.fillText(l, cx, cy + (i-(ls.length-1)/2)*12));
+    ctx.globalAlpha = 1;
   }
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
-    frame++; timer++;
+    frame++; pf++;
 
-    if      (phase === 'idle'    && timer > 25)  nextTask();
-    else if (phase === 'loading')  { taskAlpha = Math.min(1, taskAlpha + 0.06); if (timer > 55)  { phase = 'processing'; timer = 0; } }
-    else if (phase === 'processing') { if (timer > 75) { phase = 'results'; timer = 0; } }
-    else if (phase === 'results') {
-      const due = Math.floor(timer / 14);
-      while (resultsShown < due && resultsShown < currentTask.tests.length) {
-        resultDots.push({ val: currentTask.tests[resultsShown], alpha: 0 });
-        resultsShown++;
-      }
-      resultDots.forEach(d => { d.alpha = Math.min(1, d.alpha + 0.12); });
-      if (timer > 14 * currentTask.tests.length + 50) {
-        totalCorrect += currentTask.tests.filter(Boolean).length;
-        totalTests   += currentTask.tests.length;
-        taskAlpha = Math.max(0, taskAlpha - 0.06);
-        if (taskAlpha <= 0) { phase = 'idle'; timer = 0; }
-      }
+    if      (phase === 'wait'    && pf > 26) next();
+    else if (phase === 'fly') {
+      cardX = STACK_X + (MODEL_X - STACK_X - 48) * easeIO(Math.min(pf/36, 1));
+      if (pf >= 36) { phase = 'process'; pf = 0; }
+    }
+    else if (phase === 'process' && pf > 50) {
+      verdict = current.pass; vX = MODEL_X + 48; vAlpha = 0;
+      if (verdict) nPass++;
+      nDone++;
+      scoreTarget = nDone > 0 ? Math.round(nPass/nDone*100) : 0;
+      phase = 'verdict'; pf = 0;
+    }
+    else if (phase === 'verdict') {
+      vAlpha = Math.min(pf/10, 1); vX += 1.8;
+      if (pf > 50) { phase = 'done'; pf = 0; }
+    }
+    else if (phase === 'done') {
+      vAlpha = Math.max(0, vAlpha - 0.08);
+      if (pf > 20) { phase = 'wait'; pf = 0; }
     }
 
-    // Flow lines
-    ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.moveTo(CARD_X+cardHW, H/2); ctx.lineTo(AGX-AGW/2-6, AGY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(AGX+AGW/2+6, AGY); ctx.lineTo(RES_X-10, AGY); ctx.stroke();
-    ctx.setLineDash([]);
+    if (scoreDisp < scoreTarget) scoreDisp++;
+    else if (scoreDisp > scoreTarget) scoreDisp--;
 
-    // Task card
-    if (currentTask && taskAlpha > 0) {
-      ctx.globalAlpha = taskAlpha;
-      rrect(ctx, CARD_X-cardHW, H/2-32, cardHW*2, 64, 7);
-      ctx.fillStyle = '#fff'; ctx.fill();
-      ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1; ctx.stroke();
+    // Progress bar
+    const prog = Math.min(nDone/TOTAL, 1);
+    ctx.fillStyle = '#F4F4F5';
+    ctx.fillRect(W*0.06, 18, W*0.88, 3);
+    ctx.fillStyle = '#7c3aed';
+    ctx.fillRect(W*0.06, 18, W*0.88*prog, 3);
+    ctx.font = '500 8.5px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('Task '+(Math.min(nDone+1,TOTAL))+' of '+TOTAL, W*0.06, 26);
 
-      ctx.font = '600 9px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('TASK', CARD_X, H/2-18);
-
-      // Task label, word-wrapped
-      ctx.font = '500 10.5px Inter, sans-serif'; ctx.fillStyle = '#18181B';
-      const words = currentTask.label.split(' ');
-      let line = '', lines = [];
-      for (const w of words) {
-        const test = line ? line+' '+w : w;
-        if (ctx.measureText(test).width > 98 && line) { lines.push(line); line = w; }
-        else line = test;
-      }
-      if (line) lines.push(line);
-      const lineH = 14;
-      lines.forEach((l, li) => ctx.fillText(l, CARD_X, H/2 + (li - (lines.length-1)/2) * lineH + 4));
-      ctx.globalAlpha = 1;
-    }
-
-    // Agent box
-    const glow = Math.sin(agPulse)*0.5+0.5;
-    const isProc = phase === 'processing';
-    ctx.shadowColor = `rgba(124,58,237,${0.12+glow*0.12})`; ctx.shadowBlur = 6+glow*9;
-    rrect(ctx, AGX-AGW/2, AGY-AGH/2, AGW, AGH, 8);
-    ctx.fillStyle = '#f5f3ff'; ctx.fill();
-    ctx.strokeStyle = `rgba(124,58,237,${0.28+glow*0.22})`; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.font = '700 11px Inter, sans-serif'; ctx.fillStyle = '#7c3aed';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('AGENT', AGX, AGY - (isProc ? 6 : 0));
-    if (isProc) {
-      for (let i = 0; i < 3; i++) {
-        const bob = Math.sin(frame * 0.1 + i * 1.1) * 2;
-        ctx.beginPath(); ctx.arc(AGX - 8 + i*8, AGY+8+bob, 2, 0, Math.PI*2);
-        ctx.fillStyle = '#7c3aed70'; ctx.fill();
-      }
-    }
-    agPulse += 0.035;
-
-    // Result dots
-    ctx.font = '600 9px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText('TESTS', RES_X-2, RES_Y-16);
-    resultDots.forEach((d, idx) => {
-      ctx.globalAlpha = d.alpha;
-      const col = idx % 3, row = Math.floor(idx/3);
-      ctx.beginPath(); ctx.arc(RES_X + col*16, RES_Y + row*16, 5, 0, Math.PI*2);
-      ctx.fillStyle = d.val ? '#16a34a' : '#dc2626'; ctx.fill();
+    // Stack (3 background cards)
+    [2,1].forEach(l => {
+      rrect(ctx, STACK_X-44+l*3, MID_Y-26-l*3, 88, 52, 8);
+      ctx.fillStyle = l===2?'#E4E4E7':'#F0F0F1'; ctx.fill();
+      ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth=1; ctx.stroke();
     });
-    ctx.globalAlpha = 1;
+    if (current) drawCard(STACK_X, MID_Y, current.label, 1);
 
-    // Running score
-    if (totalTests > 0) {
-      const pct = Math.round(totalCorrect/totalTests*100);
-      ctx.font = '600 9px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText('SCORE', RES_X-2, H*0.64);
-      ctx.font = '800 26px Inter, sans-serif'; ctx.fillStyle = '#18181B';
-      ctx.fillText(pct+'%', RES_X-2, H*0.64+13);
+    // Flying card
+    if ((phase==='fly'||phase==='process') && current) {
+      const fa = phase==='process' ? Math.max(0,1-pf/14) : 1;
+      if (fa > 0) drawCard(cardX, MID_Y, current.label, fa);
+    }
+
+    // Arrows
+    [[STACK_X+44, MODEL_X-50],[MODEL_X+50, SCORE_X-34]].forEach(([x0,x1]) => {
+      ctx.beginPath(); ctx.moveTo(x0,MID_Y); ctx.lineTo(x1,MID_Y);
+      ctx.strokeStyle='#E8E8EC'; ctx.lineWidth=1; ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(x1,MID_Y); ctx.lineTo(x1-6,MID_Y-3.5); ctx.moveTo(x1,MID_Y); ctx.lineTo(x1-6,MID_Y+3.5);
+      ctx.strokeStyle='#C4C4CA'; ctx.lineWidth=1.2; ctx.stroke();
+    });
+
+    // Model box
+    const isProc = phase==='process';
+    const pulse = Math.sin(frame*0.09)*0.5+0.5;
+    ctx.shadowColor = `rgba(124,58,237,${0.07+pulse*0.13})`; ctx.shadowBlur = isProc ? 14+pulse*8 : 4;
+    rrect(ctx, MODEL_X-46, MID_Y-28, 92, 56, 10);
+    ctx.fillStyle='#f5f3ff'; ctx.fill();
+    ctx.strokeStyle=`rgba(124,58,237,${0.25+pulse*0.2})`; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.font='700 11px Inter, sans-serif'; ctx.fillStyle='#7c3aed';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('MODEL', MODEL_X, MID_Y-(isProc?7:0));
+    if (isProc) {
+      for (let i=0;i<3;i++) {
+        const b=Math.sin(frame*0.13+i*1.1)*2.5;
+        ctx.beginPath(); ctx.arc(MODEL_X-8+i*8, MID_Y+8+b, 2.5, 0, Math.PI*2);
+        ctx.fillStyle='#7c3aed60'; ctx.fill();
+      }
+    }
+
+    // Verdict
+    if (verdict!==null && (phase==='verdict'||phase==='done')) {
+      ctx.globalAlpha=vAlpha;
+      ctx.font='700 18px Inter, sans-serif'; ctx.fillStyle=verdict?'#16a34a':'#dc2626';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(verdict?'✓':'✗', vX, MID_Y);
+      ctx.globalAlpha=1;
+    }
+
+    // Score
+    ctx.font='600 9px Inter, sans-serif'; ctx.fillStyle='#A1A1AA';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('SCORE', SCORE_X, MID_Y-36);
+    ctx.font='800 44px Inter, sans-serif'; ctx.fillStyle='#18181B';
+    ctx.textBaseline='middle';
+    ctx.fillText(scoreDisp+'%', SCORE_X, MID_Y+6);
+    if (nDone > 4) {
+      const rank = scoreDisp>78?'Rank #1':scoreDisp>66?'Rank #2':'Rank #3';
+      ctx.font='500 10px Inter, sans-serif'; ctx.fillStyle='#A1A1AA'; ctx.textBaseline='middle';
+      ctx.fillText(rank, SCORE_X, MID_Y+40);
     }
 
     requestAnimationFrame(animate);
   }
-  animate(); nextTask();
+  animate();
 })();
 
 // ─── 3. Evaluation Pipeline (run-canvas) ─────────────────────────────────────
 (function () {
   const { ctx, W, H } = setupCanvas('run-canvas');
-  const STAGES = [
-    { label: 'TASK\nBANK',  color: '#7c3aed', x: W*0.10 },
-    { label: 'HARNESS',     color: '#0891b2', x: W*0.30 },
-    { label: 'MODEL',       color: '#7c3aed', x: W*0.50 },
-    { label: 'GRADER',      color: '#f59e0b', x: W*0.70 },
-    { label: 'SCORE',       color: '#16a34a', x: W*0.90 },
-  ];
-  const BW = Math.min(54, W * 0.14), BH = 34, LY = H * 0.5;
-  const particles = [];
-  let frame = 0;
 
-  function spawn() {
-    particles.push({ x: STAGES[0].x + BW/2, y: LY, si: 1 });
+  const easeIO  = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  const easeOut = t => 1 - (1-t)*(1-t);
+
+  // ── Layout ────────────────────────────────────────────────────────────
+  const LY   = Math.round(H * 0.42);   // pipeline lane y
+  const MX   = Math.round(W * 0.36);   // MODEL center x
+  const VX   = Math.round(W * 0.60);   // VERIFIER center x
+  const BW   = 76, BH = 42;
+
+  // Reward token grid (right side)
+  const TR   = 13;                      // token radius
+  const TCOL = 4, TROW = 4;
+  const TGAP = 5;
+  const TGRID_W = TCOL * (TR*2 + TGAP) - TGAP;   // 4*(26+5)-5 = 119
+  const TGRID_X = W - TGRID_W - 14;               // left edge of grid
+  const TGRID_Y = Math.round(H * 0.10);            // top of grid
+  const TMAX    = TCOL * TROW;                     // 16 max visible
+
+  // Task entry hold point (where circle waits before flying into model)
+  const HOLD_X  = MX - BW/2 - 28;
+
+  // ── State ─────────────────────────────────────────────────────────────
+  let frame = 0, taskNum = 0;
+  const queue = [];
+  let mState = 'idle', mTimer = 0, mTask = null;
+  let flyDot  = null;   // { x, pass } dot flying model→verifier
+  let vTimer  = 0, vActive = false, lastPass = null;
+  const tokens = [];    // { x, y, pass, alpha, scale }
+  let tokenCount = 0;
+  let nPass = 0, nTotal = 0, scoreDisp = 0;
+  const PASS_SEQ = [1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0];
+  let seqIdx = 0;
+
+  function spawnTask() {
+    taskNum++;
+    queue.push({ num: taskNum, x: -TR, alpha: 0 });
+  }
+
+  function tokenPos(slot) {
+    const col = slot % TCOL, row = Math.floor(slot / TCOL);
+    return {
+      x: TGRID_X + col * (TR*2 + TGAP) + TR,
+      y: TGRID_Y + row * (TR*2 + TGAP) + TR,
+    };
+  }
+
+  function drawTaskCircle(cx, cy, num, alpha) {
+    if (cx + TR <= 0) return; // fully off-canvas
+    ctx.globalAlpha = alpha;
+    ctx.beginPath(); ctx.arc(cx, cy, TR, 0, Math.PI*2);
+    ctx.fillStyle = '#F4F4F5'; ctx.fill();
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.5; ctx.stroke();
+    if (cx > TR + 2) { // only draw number once circle is fully inside canvas
+      ctx.font = '600 10px Inter,sans-serif';
+      ctx.fillStyle = '#52525B'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(num, cx, cy);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawToken(tok) {
+    ctx.globalAlpha = tok.alpha;
+    ctx.save(); ctx.translate(tok.x, tok.y); ctx.scale(tok.scale, tok.scale);
+    ctx.beginPath(); ctx.arc(0, 0, TR, 0, Math.PI*2);
+    ctx.fillStyle = tok.pass ? '#DCFCE7' : '#FEE2E2'; ctx.fill();
+    ctx.strokeStyle = tok.pass ? '#16a34a' : '#dc2626'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '800 14px Inter,sans-serif';
+    ctx.fillStyle = tok.pass ? '#16a34a' : '#dc2626';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(tok.pass ? '1' : '0', 0, 0);
+    ctx.restore(); ctx.globalAlpha = 1;
+  }
+
+  function dashedArrow(x0, x1, y) {
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1 - 7, y);
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(x1, y); ctx.lineTo(x1-6, y-3.5); ctx.moveTo(x1, y); ctx.lineTo(x1-6, y+3.5);
+    ctx.strokeStyle = '#C4C4CA'; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+
+  function colorDot(x, y, col) {
+    ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI*2);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI*2);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
     frame++;
-    if (frame % 65 === 0) spawn();
 
-    for (let i = 0; i < STAGES.length - 1; i++) {
-      const x0 = STAGES[i].x + BW/2, x1 = STAGES[i+1].x - BW/2;
-      ctx.beginPath(); ctx.moveTo(x0, LY); ctx.lineTo(x1, LY);
-      ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1.5;
-      ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(x1, LY); ctx.lineTo(x1-7, LY-4); ctx.moveTo(x1, LY); ctx.lineTo(x1-7, LY+4);
-      ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.2; ctx.stroke();
+    // Spawn
+    if (frame % 52 === 0 && queue.length < 3) spawnTask();
+
+    // ── Task queue movement ──────────────────────────────────────────────
+    for (let i = queue.length - 1; i >= 0; i--) {
+      const task = queue[i];
+      task.alpha = Math.min(1, task.alpha + 0.08);
+      const targetX = HOLD_X - i * (TR*2 + 6);
+      if (task.x < targetX) task.x = Math.min(task.x + 2.4, targetX);
+
+      // Consume front task when model idle
+      if (i === 0 && mState === 'idle' && task.x >= HOLD_X - 1) {
+        mState = 'fly_in'; mTimer = 0; mTask = task;
+        queue.splice(0, 1);
+        break;
+      }
+      drawTaskCircle(task.x, LY, task.num, task.alpha);
     }
 
-    STAGES.forEach(s => {
-      ctx.shadowColor = s.color + '22'; ctx.shadowBlur = 10;
-      rrect(ctx, s.x - BW/2, LY - BH/2, BW, BH, 7);
-      ctx.fillStyle = s.color + '12'; ctx.fill();
-      ctx.strokeStyle = s.color + '60'; ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.shadowBlur = 0;
-      ctx.font = '600 9px Inter, sans-serif';
-      ctx.fillStyle = s.color;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const lines = s.label.split('\n');
-      lines.forEach((l, li) => ctx.fillText(l, s.x, LY + (li - (lines.length-1)/2) * 11));
+    // ── Arrows ──────────────────────────────────────────────────────────
+    dashedArrow(HOLD_X + TR + 2, MX - BW/2 - 2, LY);
+    dashedArrow(MX + BW/2 + 2, VX - BW/2 - 2, LY);
+
+    // ── Model state machine ──────────────────────────────────────────────
+    mTimer++;
+    if (mState === 'fly_in') {
+      const prog = Math.min(mTimer / 22, 1);
+      const cx = mTask.x + (MX - mTask.x) * easeIO(prog);
+      drawTaskCircle(cx, LY, mTask.num, 1 - prog * 0.9);
+      if (mTimer >= 22) { mState = 'process'; mTimer = 0; }
+    }
+    if (mState === 'process' && mTimer >= 44) {
+      const pass = !!PASS_SEQ[seqIdx++ % PASS_SEQ.length];
+      flyDot = { x: MX + BW/2 + 4, y: LY, pass, timer: 0 };
+      mState = 'fly_out'; mTimer = 0;
+    }
+    if (mState === 'fly_out') {
+      flyDot.timer++;
+      flyDot.x = MX + BW/2 + 4 + (VX - BW/2 - 6 - MX - BW/2 - 4) * easeIO(Math.min(flyDot.timer/22, 1));
+      if (flyDot.timer >= 22) { mState = 'verifying'; mTimer = 0; vActive = true; vTimer = 0; lastPass = flyDot.pass; flyDot = null; }
+    }
+    if (mState === 'verifying' && mTimer >= 30) {
+      // Emit token into grid
+      nTotal++; if (lastPass) nPass++;
+      const slot = tokenCount % TMAX;
+      const pos = tokenPos(slot);
+      tokens[slot] = { x: pos.x, y: pos.y, pass: lastPass, alpha: 0, scale: 1.6 };
+      tokenCount++;
+      vActive = false; mState = 'idle'; mTimer = 0;
+    }
+
+    // ── MODEL box ────────────────────────────────────────────────────────
+    const isProc = mState === 'process' || mState === 'fly_in';
+    const pulse  = Math.sin(frame * 0.10) * 0.5 + 0.5;
+    ctx.shadowColor = `rgba(124,58,237,${isProc ? 0.1+pulse*0.14 : 0.03})`;
+    ctx.shadowBlur  = isProc ? 14 + pulse*6 : 2;
+    rrect(ctx, MX-BW/2, LY-BH/2, BW, BH, 9);
+    ctx.fillStyle = '#f5f3ff'; ctx.fill();
+    ctx.strokeStyle = `rgba(124,58,237,${0.22 + (isProc ? pulse*0.24 : 0)})`;
+    ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.font = '700 10px Inter,sans-serif'; ctx.fillStyle = '#7c3aed';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('MODEL', MX, LY + (isProc ? -7 : 0));
+    if (isProc) {
+      for (let i = 0; i < 3; i++) {
+        const b = Math.sin(frame*0.13 + i*1.1)*2.5;
+        ctx.beginPath(); ctx.arc(MX-7+i*7, LY+7+b, 2.5, 0, Math.PI*2);
+        ctx.fillStyle = '#7c3aed55'; ctx.fill();
+      }
+    }
+
+    // ── Flying dot model→verifier ────────────────────────────────────────
+    if (flyDot) colorDot(flyDot.x, flyDot.y, flyDot.pass ? '#16a34a' : '#dc2626');
+
+    // ── VERIFIER box ─────────────────────────────────────────────────────
+    const vPulse = vActive ? (0.1 + pulse*0.14) : 0.03;
+    ctx.shadowColor = `rgba(245,158,11,${vPulse})`;
+    ctx.shadowBlur  = vActive ? 14+pulse*6 : 2;
+    rrect(ctx, VX-BW/2, LY-BH/2, BW, BH, 9);
+    ctx.fillStyle = '#fffbeb'; ctx.fill();
+    ctx.strokeStyle = `rgba(245,158,11,${0.22 + (vActive ? pulse*0.24 : 0)})`;
+    ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.font = '700 10px Inter,sans-serif'; ctx.fillStyle = '#d97706';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('VERIFIER', VX, LY);
+
+
+    // ── Token grid ────────────────────────────────────────────────────────
+    // Empty slots (ghost outlines)
+    for (let s = 0; s < TMAX; s++) {
+      const p = tokenPos(s);
+      ctx.beginPath(); ctx.arc(p.x, p.y, TR, 0, Math.PI*2);
+      ctx.strokeStyle = '#F0F0F2'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // Filled tokens
+    tokens.forEach(tok => {
+      if (!tok) return;
+      tok.alpha  = Math.min(1, tok.alpha + 0.10);
+      tok.scale  = Math.max(1, tok.scale - 0.05);
+      drawToken(tok);
     });
 
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      if (p.si >= STAGES.length) { particles.splice(i, 1); continue; }
-      const tx = STAGES[p.si].x - BW/2 - 5;
-      if (p.x >= tx - 1.5) p.si++;
-      else p.x += 1.5;
-      const col = STAGES[Math.max(0, p.si - 1)].color;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2);
-      ctx.fillStyle = col; ctx.fill();
+    // ── Score ─────────────────────────────────────────────────────────────
+    if (nTotal > 0) {
+      const target = Math.round(nPass / nTotal * 100);
+      if (scoreDisp < target) scoreDisp++;
+      else if (scoreDisp > target) scoreDisp--;
     }
+    const scoreY = TGRID_Y + TROW * (TR*2 + TGAP) + 14;
+    ctx.font = '600 8.5px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('SCORE', TGRID_X + TGRID_W/2, scoreY);
+    ctx.font = '800 36px Inter,sans-serif';
+    ctx.fillStyle = nTotal > 0 ? '#18181B' : '#E4E4E7';
+    ctx.fillText(nTotal > 0 ? scoreDisp + '%' : '—', TGRID_X + TGRID_W/2, scoreY + 13);
+
     requestAnimationFrame(animate);
   }
-  animate(); spawn();
+
+  spawnTask(); spawnTask();
+  animate();
 })();
 
 // ─── 4. The Race (race-canvas) ───────────────────────────────────────────────
@@ -1566,6 +2100,60 @@ makeInfraCanvas('infra-locked', true);
 document.getElementById('islo-link').addEventListener('click', () => {
   posthog.capture('islo_link_clicked', { page: 'story' });
 });
+
+// ─── Sticky share bar ────────────────────────────────────────────────────────
+(function () {
+  const bar      = document.getElementById('sticky-share');
+  const tweetBtn = document.getElementById('sticky-tweet');
+  const copyBtn  = document.getElementById('sticky-copy');
+  const closeBtn = document.getElementById('sticky-close');
+  const hero     = document.getElementById('hero-section');
+  if (!bar || !hero) return;
+
+  const TWEET_TEXT = "Most AI benchmark headlines miss the point. A +11 pt jump near 50% is a leap forward. A +3 pt jump near 90% is noise. Here's how to tell the difference (by @islolabs):";
+  const PAGE_URL   = "https://agent-benchmarks.com";
+
+  tweetBtn.href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(TWEET_TEXT + " " + PAGE_URL);
+
+  const navTweet = document.getElementById('nav-tweet');
+  if (navTweet) navTweet.href = tweetBtn.href;
+
+  let dismissed = false;
+  try { if (sessionStorage.getItem('share-bar-dismissed') === '1') dismissed = true; } catch (_) {}
+
+  const obs = new IntersectionObserver(entries => {
+    if (!dismissed && !entries[0].isIntersecting) bar.classList.add('visible');
+    else if (!dismissed) bar.classList.remove('visible');
+  }, { threshold: 0.1 });
+  obs.observe(hero);
+
+  closeBtn.addEventListener('click', () => {
+    dismissed = true;
+    bar.classList.remove('visible');
+    try { sessionStorage.setItem('share-bar-dismissed', '1'); } catch (_) {}
+  });
+
+  // Copy link with safe DOM updates (targets the <span> already in the button)
+  const copyLabel = copyBtn.querySelector('span');
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(PAGE_URL);
+      copyBtn.classList.add('copied');
+      copyLabel.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyLabel.textContent = 'Copy link';
+      }, 2200);
+    } catch (_) {}
+  });
+
+  [tweetBtn, copyBtn].forEach(btn => {
+    btn.addEventListener('click', () => {
+      try { posthog.capture('sticky_share_clicked', { method: btn === tweetBtn ? 'tweet' : 'copy' }); } catch (_) {}
+    });
+  });
+})();
 </script>
 </body>
 </html>
