@@ -1411,194 +1411,244 @@ function rrect(ctx, x, y, w, h, r) {
 (function () {
   const { ctx, W, H } = setupCanvas('run-canvas');
 
-  // ── Layout: TASK BANK → MODEL → GRADER → SCORE ───────────────────────
-  const CY  = H * 0.46;          // main lane y
-  const BX  = W * 0.14;          // task bank cx
-  const MX  = W * 0.42;          // model cx
-  const GX  = W * 0.70;          // grader cx
-  const SX  = W * 0.90;          // score cx
-  const BW  = 72, BH = 42;       // box dimensions
+  const easeIO  = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  const easeOut = t => 1 - (1-t)*(1-t);
+  const fade01  = (T, a, b) => Math.max(0, Math.min(1, (T-a)/(b-a)));
 
-  // Task types that cycle through the bank
-  const TASK_TYPES = [
-    { label: 'GitHub issue',    color: '#7c3aed' },
-    { label: 'Math problem',    color: '#0891b2' },
-    { label: 'Research Q',      color: '#16a34a' },
-    { label: 'Logic puzzle',    color: '#d97706' },
+  // ── Tasks that cycle through ──────────────────────────────────────────
+  const TASKS = [
+    { file: 'sort_list.yaml',
+      yaml: ['prompt: "Sort [3, null, 1, 4]"', 'expected: "[1, 3, 4]"', 'type: code'],
+      verifier: 'exact_match', pass: true },
+    { file: 'shortest_path.yaml',
+      yaml: ['prompt: "Shortest path in G?"', 'graph: "12 nodes, 31 edges"', 'type: math'],
+      verifier: 'unit_tests', pass: true },
+    { file: 'fix_bug.yaml',
+      yaml: ['prompt: "Fix the off-by-one"', 'input: "loop i <= n"', 'type: code'],
+      verifier: 'run_tests', pass: false },
+    { file: 'summarise.yaml',
+      yaml: ['prompt: "Key findings of..."', 'rubric: step_by_step', 'type: nlp'],
+      verifier: 'llm_judge', pass: true },
   ];
 
-  // Pass pattern for grader results
-  const PASS_SEQ = [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1];
-  let seqIdx = 0, nPass = 0, nTotal = 0, scoreDisp = 0;
+  // ── Layout ────────────────────────────────────────────────────────────
+  // Two code cards flanking a MODEL box
+  const LCX = 6,   LCW = 186, LCH = 200, LCY = 20; // left card (task)
+  const RCX = W-LCW-6, RCW = LCW, RCH = LCH, RCY = LCY; // right card (reward fn)
+  const MY  = LCY + 22 + (LCH - 22) * 0.44;          // model center y (in card content area)
+  const MX  = W / 2;                                   // model center x
+  const MBW = 76, MBH = 42;
 
-  // State machine
-  // wait → fly_in → process → grade → show_result → wait (loop)
-  const PHASES = ['wait', 'fly_in', 'process', 'fly_out', 'grade', 'wait'];
-  const DURS   = [  18,      32,       50,        28,        36,      0  ];
-  let phaseIdx = 0, pf = 0, frame = 0, taskTypeIdx = 0;
+  // Arrow endpoints
+  const ARR1_X0 = LCX + LCW + 4;
+  const ARR1_X1 = MX - MBW / 2 - 3;
+  const ARR2_X0 = MX + MBW / 2 + 3;
+  const ARR2_X1 = RCX - 4;
 
-  // Flying pill state
-  let pillX = 0, pillAlpha = 0, currentType = TASK_TYPES[0];
-  // Verdict state
-  let verdict = null, vAlpha = 0;
-
-  const easeIO = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  // State
+  let frame = 0, pf = 0, taskIdx = 0;
+  //  idle → fly_in → process → fly_out → evaluate → show → idle
+  const PHASES = ['idle', 'fly_in', 'process', 'fly_out', 'evaluate', 'show'];
+  const DURS   = [  55,     30,       46,         26,        42,         52  ];
+  let phaseIdx = 0;
+  let curTask = TASKS[0], rewardValue = null;
+  let nPass = 0, nTotal = 0, scoreDisp = 0;
 
   function nextPhase() {
     phaseIdx = (phaseIdx + 1) % PHASES.length;
     pf = 0;
-    if (PHASES[phaseIdx] === 'fly_in') {
-      // new task coming out
-      currentType = TASK_TYPES[taskTypeIdx++ % TASK_TYPES.length];
-      pillX = BX + BW / 2 + 4;
-      pillAlpha = 1;
-      verdict = null; vAlpha = 0;
+    if (PHASES[phaseIdx] === 'evaluate') {
+      rewardValue = curTask.pass;
+      nTotal++; if (rewardValue) nPass++;
     }
-    if (PHASES[phaseIdx] === 'fly_out') {
-      const pass = !!PASS_SEQ[seqIdx++ % PASS_SEQ.length];
-      nTotal++; if (pass) nPass++;
-      verdict = pass;
+    if (PHASES[phaseIdx] === 'idle') {
+      taskIdx = (taskIdx + 1) % TASKS.length;
+      curTask = TASKS[taskIdx];
+      rewardValue = null;
     }
   }
 
-  function drawBox(cx, cy, label, sub, color, glow) {
-    if (glow) {
-      ctx.shadowColor = color + '40'; ctx.shadowBlur = glow;
-    }
-    rrect(ctx, cx - BW/2, cy - BH/2, BW, BH, 9);
-    ctx.fillStyle = color + '12'; ctx.fill();
-    ctx.strokeStyle = color + (glow ? 'CC' : '55'); ctx.lineWidth = glow ? 2 : 1.5; ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.font = '700 10px Inter,sans-serif';
-    ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(label, cx, sub ? cy - 6 : cy);
-    if (sub) {
-      ctx.font = '400 7px Inter,sans-serif'; ctx.fillStyle = color + '99';
-      ctx.fillText(sub, cx, cy + 7);
-    }
+  // ── Card drawing helper ───────────────────────────────────────────────
+  function card(x, y, w, h, dark) {
+    rrect(ctx, x, y, w, h, 8);
+    ctx.fillStyle = dark ? '#1C1C1F' : '#F8F8FA'; ctx.fill();
+    ctx.strokeStyle = dark ? '#3F3F46' : '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
+    // Title bar
+    rrect(ctx, x, y, w, 22, 8);
+    ctx.fillStyle = dark ? '#27272A' : '#EFEFF2'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x, y+22); ctx.lineTo(x+w, y+22);
+    ctx.strokeStyle = dark ? '#3F3F46' : '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
+    // Traffic light dots
+    [['#FC8181',10], ['#F6AD55',20], ['#68D391',30]].forEach(([c,ox]) => {
+      ctx.beginPath(); ctx.arc(x+ox, y+11, 3, 0, Math.PI*2);
+      ctx.fillStyle = c; ctx.fill();
+    });
   }
 
-  function drawPill(cx, cy, type, alpha) {
-    ctx.globalAlpha = alpha;
-    rrect(ctx, cx - 40, cy - 14, 80, 28, 6);
-    ctx.fillStyle = '#fff'; ctx.fill();
-    ctx.strokeStyle = type.color + '55'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.font = '500 8px Inter,sans-serif';
-    ctx.fillStyle = type.color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(type.label, cx, cy);
-    ctx.globalAlpha = 1;
-  }
-
-  function dashed(x0, y, x1) {
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y);
-    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.stroke();
+  function dashedArrow(x0, x1, y) {
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1-7, y);
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.setLineDash([3,5]); ctx.stroke();
     ctx.setLineDash([]);
-    // arrowhead
-    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1-6, y-3); ctx.moveTo(x1, y); ctx.lineTo(x1-6, y+3);
-    ctx.strokeStyle = '#BEBEC8'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1-6, y-3.5);
+    ctx.moveTo(x1, y); ctx.lineTo(x1-6, y+3.5);
+    ctx.strokeStyle = '#C4C4CA'; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+
+  function dot(x, y, col) {
+    ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI*2);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI*2);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
     frame++; pf++;
-    if (pf >= DURS[phaseIdx] && DURS[phaseIdx] > 0) nextPhase();
-    else if (DURS[phaseIdx] === 0) nextPhase(); // zero-duration wait
-    const T = DURS[phaseIdx] > 0 ? Math.min(pf / DURS[phaseIdx], 1) : 0;
+    if (pf >= DURS[phaseIdx]) nextPhase();
+    const T     = Math.min(pf / DURS[phaseIdx], 1);
     const phase = PHASES[phaseIdx];
 
-    // ── Arrows ──────────────────────────────────────────────────────────
-    dashed(BX + BW/2 + 2, CY, MX - BW/2 - 2);
-    dashed(MX + BW/2 + 2, CY, GX - BW/2 - 2);
-    dashed(GX + BW/2 + 2, CY, SX - 26);
+    // ── LEFT CARD — task file ────────────────────────────────────────────
+    // Blink new task in during idle
+    const lcAlpha = (phase === 'idle' && pf < 10) ? pf / 10 : 1;
+    ctx.globalAlpha = lcAlpha;
+    card(LCX, LCY, LCW, LCH, false);
 
-    // ── TASK BANK box ────────────────────────────────────────────────────
-    drawBox(BX, CY, 'TASK BANK', '500 tasks', '#52525B', 0);
+    // Filename
+    ctx.font = '500 7.5px Inter,sans-serif'; ctx.fillStyle = '#9CA3AF';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(curTask.file, LCX + 42, LCY + 11);
 
-    // Task type hints stacked above/below bank (static labels rotating softly)
-    const types = ['GitHub issues', 'math problems', 'research Qs'];
-    ctx.font = '400 7px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    types.forEach((lbl, i) => {
-      const yOff = (i - 1) * 13;
-      // Gently cycle which one is "active"
-      const isActive = Math.floor(frame / 60) % types.length === i;
-      ctx.globalAlpha = isActive ? 0.8 : 0.3;
-      ctx.fillStyle = '#71717A';
-      ctx.fillText(lbl, BX, CY + BH/2 + 16 + yOff);
+    // YAML content
+    ctx.textBaseline = 'top';
+    const lineY0 = LCY + 30, lh = 18, pad = LCX + 14;
+    ctx.font = '500 7.5px "Courier New", monospace';
+    ctx.fillStyle = '#9CA3AF'; ctx.fillText('---', pad, lineY0);
+
+    curTask.yaml.forEach((line, i) => {
+      const y = lineY0 + 14 + i * lh;
+      const colon = line.indexOf(':');
+      if (colon > -1) {
+        const key = line.slice(0, colon + 1);
+        const val = line.slice(colon + 1);
+        ctx.fillStyle = '#0EA5E9'; ctx.fillText(key, pad, y);
+        ctx.fillStyle = '#374151'; ctx.fillText(val, pad + ctx.measureText(key).width, y);
+      } else {
+        ctx.fillStyle = '#374151'; ctx.fillText(line, pad, y);
+      }
     });
+
+    // Verifier row (highlighted)
+    const vy = lineY0 + 14 + curTask.yaml.length * lh + 4;
+    ctx.fillStyle = '#0EA5E9'; ctx.fillText('verifier:', pad, vy);
+    ctx.fillStyle = '#7c3aed';
+    ctx.fillText(' ' + curTask.verifier, pad + ctx.measureText('verifier:').width, vy);
+
+    // Footer hint
+    ctx.font = '400 7px Inter,sans-serif'; ctx.fillStyle = '#C4C4CA';
+    ctx.fillText('→ reward: 0 or 1', pad, LCY + LCH - 18);
     ctx.globalAlpha = 1;
 
-    // ── Flying task pill (bank → model) ──────────────────────────────────
+    // ── Arrows (always visible) ──────────────────────────────────────────
+    dashedArrow(ARR1_X0, ARR1_X1, MY);
+    dashedArrow(ARR2_X0, ARR2_X1, MY);
+
+    // ── Flying dot: task → model ─────────────────────────────────────────
     if (phase === 'fly_in') {
-      const targetX = MX - BW/2 - 44;
-      pillX = BX + BW/2 + 44 + (targetX - BX - BW/2 - 44) * easeIO(T);
-      drawPill(pillX, CY, currentType, 1);
-    }
-    // Pill fades into model while processing
-    if (phase === 'process' && pf < 12) {
-      const a = 1 - pf / 12;
-      drawPill(MX - BW/2 - 40, CY, currentType, a);
+      const dx = ARR1_X0 + (ARR1_X1 - ARR1_X0) * easeIO(T);
+      dot(dx, MY, '#7c3aed');
     }
 
     // ── MODEL box ────────────────────────────────────────────────────────
     const isProc = phase === 'process';
-    const pulse = Math.sin(frame * 0.10) * 0.5 + 0.5;
-    const glow = isProc ? 10 + pulse * 8 : 0;
-    drawBox(MX, CY, 'MODEL', null, '#7c3aed', glow);
+    const pulse  = Math.sin(frame * 0.10) * 0.5 + 0.5;
+    ctx.shadowColor = `rgba(124,58,237,${isProc ? 0.1+pulse*0.14 : 0.04})`;
+    ctx.shadowBlur  = isProc ? 14+pulse*6 : 2;
+    rrect(ctx, MX-MBW/2, MY-MBH/2, MBW, MBH, 9);
+    ctx.fillStyle = '#f5f3ff'; ctx.fill();
+    ctx.strokeStyle = `rgba(124,58,237,${0.22+(isProc?pulse*0.24:0)})`;
+    ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.font = '700 10px Inter,sans-serif'; ctx.fillStyle = '#7c3aed';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('MODEL', MX, MY + (isProc ? -7 : 0));
     if (isProc) {
       for (let i = 0; i < 3; i++) {
         const b = Math.sin(frame * 0.13 + i * 1.1) * 2.5;
-        ctx.beginPath(); ctx.arc(MX - 8 + i * 8, CY + 9 + b, 2.5, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(MX - 7 + i*7, MY + 7 + b, 2.5, 0, Math.PI*2);
         ctx.fillStyle = '#7c3aed55'; ctx.fill();
       }
     }
 
-    // ── Flying result dot (model → grader) ───────────────────────────────
+    // ── Flying dot: model → reward card ─────────────────────────────────
     if (phase === 'fly_out') {
-      const rx = MX + BW/2 + 4 + (GX - BW/2 - 4 - MX - BW/2 - 4) * easeIO(T);
-      const col = verdict ? '#16a34a' : '#dc2626';
-      ctx.beginPath(); ctx.arc(rx, CY, 6, 0, Math.PI*2);
-      ctx.fillStyle = col; ctx.fill();
-      ctx.beginPath(); ctx.arc(rx, CY, 6, 0, Math.PI*2);
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      const col = curTask.pass ? '#16a34a' : '#dc2626';
+      const dx = ARR2_X0 + (ARR2_X1 - ARR2_X0) * easeIO(T);
+      dot(dx, MY, col);
     }
 
-    // ── VERIFIER box ──────────────────────────────────────────────────────
-    const isGrading = phase === 'grade';
-    drawBox(GX, CY, 'VERIFIER', 'reward: 0 or 1', '#f59e0b', isGrading ? 8 + pulse * 6 : 0);
+    // ── RIGHT CARD — reward_fn.py ────────────────────────────────────────
+    const showRight = ['fly_out','evaluate','show'].includes(phase);
+    if (showRight) {
+      const rcAlpha = phase === 'fly_out' ? fade01(T, 0.3, 0.9) : 1;
+      ctx.globalAlpha = rcAlpha;
+      card(RCX, RCY, RCW, RCH, true);
 
-    // Reward token (0 or 1) emerges from verifier
-    if (phase === 'grade' || (phase === 'wait' && pf < 10)) {
-      vAlpha = phase === 'grade' ? Math.min(pf / 14, 1) : Math.max(0, vAlpha - 0.07);
-      if (verdict !== null && vAlpha > 0) {
-        const rewardX = GX + BW/2 + 22;
-        ctx.globalAlpha = vAlpha;
-        // Reward badge circle
-        ctx.beginPath(); ctx.arc(rewardX, CY, 14, 0, Math.PI*2);
-        ctx.fillStyle = verdict ? '#dcfce7' : '#fee2e2'; ctx.fill();
-        ctx.strokeStyle = verdict ? '#16a34a' : '#dc2626'; ctx.lineWidth = 1.5; ctx.stroke();
-        // 1 or 0 inside
-        ctx.font = '700 15px Inter,sans-serif';
-        ctx.fillStyle = verdict ? '#16a34a' : '#dc2626';
+      ctx.font = '500 7.5px Inter,sans-serif'; ctx.fillStyle = '#6B7280';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText('reward_fn.py', RCX + 42, RCY + 11);
+
+      const evalT = phase === 'evaluate' ? T : (phase === 'show' ? 1 : 0);
+      const codeLines = [
+        { s: 'def reward_fn(output, task):', c: '#93C5FD' },
+        { s: '  expected = task.expected', c: '#D1D5DB' },
+        { s: '  result = verifier(', c: '#D1D5DB' },
+        { s: '    output, expected)', c: '#D1D5DB' },
+        { s: '  if result: return 1', c: curTask.pass ? '#86EFAC' : '#6B7280' },
+        { s: '  return 0', c: !curTask.pass ? '#FCA5A5' : '#6B7280' },
+      ];
+      const numShow = Math.ceil(evalT * codeLines.length);
+      const rpad = RCX + 12, rtop = RCY + 30;
+
+      ctx.font = '500 7px "Courier New",monospace';
+      ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      codeLines.slice(0, numShow).forEach((ln, i) => {
+        ctx.fillStyle = ln.c;
+        ctx.fillText(ln.s, rpad, rtop + i * 14);
+      });
+
+      // Reward output — appears after code evaluates
+      if (evalT > 0.8 || phase === 'show') {
+        const outA = phase === 'show' ? 1 : fade01(evalT, 0.8, 1.0);
+        ctx.globalAlpha = rcAlpha * outA;
+
+        // Separator
+        const sepY = RCY + RCH - 58;
+        ctx.beginPath(); ctx.moveTo(RCX+10, sepY); ctx.lineTo(RCX+RCW-10, sepY);
+        ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 1; ctx.stroke();
+
+        // "→ reward" label
+        ctx.font = '500 8px Inter,sans-serif'; ctx.fillStyle = '#6B7280';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(verdict ? '1' : '0', rewardX, CY);
+        ctx.fillText('→ reward', RCX + RCW/2, sepY + 14);
+
+        // Big 1 or 0
+        ctx.font = '800 44px Inter,sans-serif';
+        ctx.fillStyle = curTask.pass ? '#86EFAC' : '#FCA5A5';
+        ctx.fillText(curTask.pass ? '1' : '0', RCX + RCW/2, sepY + 42);
         ctx.globalAlpha = 1;
       }
+      ctx.globalAlpha = 1;
     }
 
-    // ── Score (right) ─────────────────────────────────────────────────────
+    // ── Score (below center) ─────────────────────────────────────────────
     if (nTotal > 0) {
       const target = Math.round(nPass / nTotal * 100);
       if (scoreDisp < target) scoreDisp++;
       else if (scoreDisp > target) scoreDisp--;
-    }
-    ctx.font = '600 8px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('SCORE', SX, CY - 22);
-    ctx.font = '800 38px Inter,sans-serif'; ctx.fillStyle = nTotal > 0 ? '#18181B' : '#E4E4E7';
-    ctx.fillText(nTotal > 0 ? scoreDisp + '%' : '—', SX, CY + 5);
-    if (nTotal > 0) {
-      ctx.font = '400 7px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.fillText('avg reward × 100', SX, CY + 28);
+      ctx.font = '500 8px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText('running score: ' + scoreDisp + '%  (' + nTotal + ' tasks)', W/2, LCY + LCH + 10);
     }
 
     requestAnimationFrame(animate);
