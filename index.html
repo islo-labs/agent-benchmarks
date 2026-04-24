@@ -1458,13 +1458,16 @@ function rrect(ctx, x, y, w, h, r) {
   }
 
   function drawTaskCircle(cx, cy, num, alpha) {
+    if (cx + TR <= 0) return; // fully off-canvas
     ctx.globalAlpha = alpha;
     ctx.beginPath(); ctx.arc(cx, cy, TR, 0, Math.PI*2);
     ctx.fillStyle = '#F4F4F5'; ctx.fill();
     ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.font = '600 10px Inter,sans-serif';
-    ctx.fillStyle = '#52525B'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(num, cx, cy);
+    if (cx > TR + 2) { // only draw number once circle is fully inside canvas
+      ctx.font = '600 10px Inter,sans-serif';
+      ctx.fillStyle = '#52525B'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(num, cx, cy);
+    }
     ctx.globalAlpha = 1;
   }
 
