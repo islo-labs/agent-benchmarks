@@ -1261,363 +1261,321 @@ function rrect(ctx, x, y, w, h, r) {
   const { ctx, W, H } = setupCanvas('bench-canvas');
 
   const TASKS = [
-    { label: 'Fix: null ptr in sort()', tests: [1,1,1,0,1,1] },
-    { label: 'Implement: rate limiter', tests: [1,1,1,1,1,0] },
-    { label: 'Debug: off-by-one in loop', tests: [1,0,1,1,0,1] },
-    { label: 'Patch: SQL injection risk', tests: [1,1,1,1,1,1] },
-    { label: 'Fix: async race condition', tests: [1,1,0,1,1,0] },
+    { label: 'Fix null ptr in sort()',   pass: true  },
+    { label: 'Implement rate limiter',   pass: false },
+    { label: 'Debug off-by-one loop',    pass: true  },
+    { label: 'Patch SQL injection',      pass: true  },
+    { label: 'Fix async race condition', pass: true  },
+    { label: 'Add retry logic',          pass: false },
   ];
+  const TOTAL = 247;
 
-  let tidx = 0, phase = 'idle', timer = 0, frame = 0, agPulse = 0;
-  let taskAlpha = 0, currentTask = null, resultDots = [], resultsShown = 0;
-  let totalCorrect = 0, totalTests = 0;
+  let tidx = 0, frame = 0, pf = 0;
+  let phase = 'wait', current = null;
+  let cardX = 0, verdict = null, vX = 0, vAlpha = 0;
+  let nPass = 0, nDone = 0, scoreDisp = 0, scoreTarget = 0;
 
-  const cardHW = Math.min(56, W * 0.13);
-  const AGX = W * 0.5, AGY = H * 0.5, AGW = Math.min(88, W * 0.22), AGH = 42;
-  const CARD_X = W * 0.16, RES_X = W * 0.73, RES_Y = H * 0.33;
+  const STACK_X = W * 0.17, MODEL_X = W * 0.50, SCORE_X = W * 0.83, MID_Y = H * 0.50;
+  const easeIO = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
 
-  function nextTask() {
-    currentTask = TASKS[tidx++ % TASKS.length];
-    phase = 'loading'; timer = 0; taskAlpha = 0; resultDots = []; resultsShown = 0;
+  function next() {
+    current = TASKS[tidx++ % TASKS.length];
+    cardX = STACK_X; verdict = null; vAlpha = 0;
+    phase = 'fly'; pf = 0;
+  }
+
+  function drawCard(cx, cy, label, alpha) {
+    ctx.globalAlpha = alpha;
+    rrect(ctx, cx - 44, cy - 26, 88, 52, 8);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.font = '500 8.5px Inter, sans-serif'; ctx.fillStyle = '#52525B';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const words = label.split(' '); let ln = '', ls = [];
+    for (const w of words) {
+      const t = ln ? ln+' '+w : w;
+      if (ctx.measureText(t).width > 72 && ln) { ls.push(ln); ln = w; } else ln = t;
+    }
+    if (ln) ls.push(ln);
+    ls.forEach((l, i) => ctx.fillText(l, cx, cy + (i-(ls.length-1)/2)*12));
+    ctx.globalAlpha = 1;
   }
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
-    frame++; timer++;
+    frame++; pf++;
 
-    if      (phase === 'idle'    && timer > 25)  nextTask();
-    else if (phase === 'loading')  { taskAlpha = Math.min(1, taskAlpha + 0.06); if (timer > 55)  { phase = 'processing'; timer = 0; } }
-    else if (phase === 'processing') { if (timer > 75) { phase = 'results'; timer = 0; } }
-    else if (phase === 'results') {
-      const due = Math.floor(timer / 14);
-      while (resultsShown < due && resultsShown < currentTask.tests.length) {
-        resultDots.push({ val: currentTask.tests[resultsShown], alpha: 0 });
-        resultsShown++;
-      }
-      resultDots.forEach(d => { d.alpha = Math.min(1, d.alpha + 0.12); });
-      if (timer > 14 * currentTask.tests.length + 50) {
-        totalCorrect += currentTask.tests.filter(Boolean).length;
-        totalTests   += currentTask.tests.length;
-        taskAlpha = Math.max(0, taskAlpha - 0.06);
-        if (taskAlpha <= 0) { phase = 'idle'; timer = 0; }
-      }
+    if      (phase === 'wait'    && pf > 26) next();
+    else if (phase === 'fly') {
+      cardX = STACK_X + (MODEL_X - STACK_X - 48) * easeIO(Math.min(pf/36, 1));
+      if (pf >= 36) { phase = 'process'; pf = 0; }
+    }
+    else if (phase === 'process' && pf > 50) {
+      verdict = current.pass; vX = MODEL_X + 48; vAlpha = 0;
+      if (verdict) nPass++;
+      nDone++;
+      scoreTarget = nDone > 0 ? Math.round(nPass/nDone*100) : 0;
+      phase = 'verdict'; pf = 0;
+    }
+    else if (phase === 'verdict') {
+      vAlpha = Math.min(pf/10, 1); vX += 1.8;
+      if (pf > 50) { phase = 'done'; pf = 0; }
+    }
+    else if (phase === 'done') {
+      vAlpha = Math.max(0, vAlpha - 0.08);
+      if (pf > 20) { phase = 'wait'; pf = 0; }
     }
 
-    // Flow lines
-    ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.moveTo(CARD_X+cardHW, H/2); ctx.lineTo(AGX-AGW/2-6, AGY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(AGX+AGW/2+6, AGY); ctx.lineTo(RES_X-10, AGY); ctx.stroke();
-    ctx.setLineDash([]);
+    if (scoreDisp < scoreTarget) scoreDisp++;
+    else if (scoreDisp > scoreTarget) scoreDisp--;
 
-    // Task card
-    if (currentTask && taskAlpha > 0) {
-      ctx.globalAlpha = taskAlpha;
-      rrect(ctx, CARD_X-cardHW, H/2-32, cardHW*2, 64, 7);
-      ctx.fillStyle = '#fff'; ctx.fill();
-      ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1; ctx.stroke();
+    // Progress bar
+    const prog = Math.min(nDone/TOTAL, 1);
+    ctx.fillStyle = '#F4F4F5';
+    ctx.fillRect(W*0.06, 18, W*0.88, 3);
+    ctx.fillStyle = '#7c3aed';
+    ctx.fillRect(W*0.06, 18, W*0.88*prog, 3);
+    ctx.font = '500 8.5px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('Task '+(Math.min(nDone+1,TOTAL))+' of '+TOTAL, W*0.06, 26);
 
-      ctx.font = '600 9px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('TASK', CARD_X, H/2-18);
-
-      // Task label, word-wrapped
-      ctx.font = '500 10.5px Inter, sans-serif'; ctx.fillStyle = '#18181B';
-      const words = currentTask.label.split(' ');
-      let line = '', lines = [];
-      for (const w of words) {
-        const test = line ? line+' '+w : w;
-        if (ctx.measureText(test).width > 98 && line) { lines.push(line); line = w; }
-        else line = test;
-      }
-      if (line) lines.push(line);
-      const lineH = 14;
-      lines.forEach((l, li) => ctx.fillText(l, CARD_X, H/2 + (li - (lines.length-1)/2) * lineH + 4));
-      ctx.globalAlpha = 1;
-    }
-
-    // Agent box
-    const glow = Math.sin(agPulse)*0.5+0.5;
-    const isProc = phase === 'processing';
-    ctx.shadowColor = `rgba(124,58,237,${0.12+glow*0.12})`; ctx.shadowBlur = 6+glow*9;
-    rrect(ctx, AGX-AGW/2, AGY-AGH/2, AGW, AGH, 8);
-    ctx.fillStyle = '#f5f3ff'; ctx.fill();
-    ctx.strokeStyle = `rgba(124,58,237,${0.28+glow*0.22})`; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.font = '700 11px Inter, sans-serif'; ctx.fillStyle = '#7c3aed';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('AGENT', AGX, AGY - (isProc ? 6 : 0));
-    if (isProc) {
-      for (let i = 0; i < 3; i++) {
-        const bob = Math.sin(frame * 0.1 + i * 1.1) * 2;
-        ctx.beginPath(); ctx.arc(AGX - 8 + i*8, AGY+8+bob, 2, 0, Math.PI*2);
-        ctx.fillStyle = '#7c3aed70'; ctx.fill();
-      }
-    }
-    agPulse += 0.035;
-
-    // Result dots
-    ctx.font = '600 9px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText('TESTS', RES_X-2, RES_Y-16);
-    resultDots.forEach((d, idx) => {
-      ctx.globalAlpha = d.alpha;
-      const col = idx % 3, row = Math.floor(idx/3);
-      ctx.beginPath(); ctx.arc(RES_X + col*16, RES_Y + row*16, 5, 0, Math.PI*2);
-      ctx.fillStyle = d.val ? '#16a34a' : '#dc2626'; ctx.fill();
+    // Stack (3 background cards)
+    [2,1].forEach(l => {
+      rrect(ctx, STACK_X-44+l*3, MID_Y-26-l*3, 88, 52, 8);
+      ctx.fillStyle = l===2?'#E4E4E7':'#F0F0F1'; ctx.fill();
+      ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth=1; ctx.stroke();
     });
-    ctx.globalAlpha = 1;
+    if (current) drawCard(STACK_X, MID_Y, current.label, 1);
 
-    // Running score
-    if (totalTests > 0) {
-      const pct = Math.round(totalCorrect/totalTests*100);
-      ctx.font = '600 9px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText('SCORE', RES_X-2, H*0.64);
-      ctx.font = '800 26px Inter, sans-serif'; ctx.fillStyle = '#18181B';
-      ctx.fillText(pct+'%', RES_X-2, H*0.64+13);
+    // Flying card
+    if ((phase==='fly'||phase==='process') && current) {
+      const fa = phase==='process' ? Math.max(0,1-pf/14) : 1;
+      if (fa > 0) drawCard(cardX, MID_Y, current.label, fa);
+    }
+
+    // Arrows
+    [[STACK_X+44, MODEL_X-50],[MODEL_X+50, SCORE_X-34]].forEach(([x0,x1]) => {
+      ctx.beginPath(); ctx.moveTo(x0,MID_Y); ctx.lineTo(x1,MID_Y);
+      ctx.strokeStyle='#E8E8EC'; ctx.lineWidth=1; ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(x1,MID_Y); ctx.lineTo(x1-6,MID_Y-3.5); ctx.moveTo(x1,MID_Y); ctx.lineTo(x1-6,MID_Y+3.5);
+      ctx.strokeStyle='#C4C4CA'; ctx.lineWidth=1.2; ctx.stroke();
+    });
+
+    // Model box
+    const isProc = phase==='process';
+    const pulse = Math.sin(frame*0.09)*0.5+0.5;
+    ctx.shadowColor = `rgba(124,58,237,${0.07+pulse*0.13})`; ctx.shadowBlur = isProc ? 14+pulse*8 : 4;
+    rrect(ctx, MODEL_X-46, MID_Y-28, 92, 56, 10);
+    ctx.fillStyle='#f5f3ff'; ctx.fill();
+    ctx.strokeStyle=`rgba(124,58,237,${0.25+pulse*0.2})`; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.font='700 11px Inter, sans-serif'; ctx.fillStyle='#7c3aed';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('MODEL', MODEL_X, MID_Y-(isProc?7:0));
+    if (isProc) {
+      for (let i=0;i<3;i++) {
+        const b=Math.sin(frame*0.13+i*1.1)*2.5;
+        ctx.beginPath(); ctx.arc(MODEL_X-8+i*8, MID_Y+8+b, 2.5, 0, Math.PI*2);
+        ctx.fillStyle='#7c3aed60'; ctx.fill();
+      }
+    }
+
+    // Verdict
+    if (verdict!==null && (phase==='verdict'||phase==='done')) {
+      ctx.globalAlpha=vAlpha;
+      ctx.font='700 18px Inter, sans-serif'; ctx.fillStyle=verdict?'#16a34a':'#dc2626';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(verdict?'✓':'✗', vX, MID_Y);
+      ctx.globalAlpha=1;
+    }
+
+    // Score
+    ctx.font='600 9px Inter, sans-serif'; ctx.fillStyle='#A1A1AA';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('SCORE', SCORE_X, MID_Y-36);
+    ctx.font='800 44px Inter, sans-serif'; ctx.fillStyle='#18181B';
+    ctx.textBaseline='middle';
+    ctx.fillText(scoreDisp+'%', SCORE_X, MID_Y+6);
+    if (nDone > 4) {
+      const rank = scoreDisp>78?'Rank #1':scoreDisp>66?'Rank #2':'Rank #3';
+      ctx.font='500 10px Inter, sans-serif'; ctx.fillStyle='#A1A1AA'; ctx.textBaseline='middle';
+      ctx.fillText(rank, SCORE_X, MID_Y+40);
     }
 
     requestAnimationFrame(animate);
   }
-  animate(); nextTask();
+  animate();
 })();
 
 // ─── 3. Evaluation Pipeline (run-canvas) ─────────────────────────────────────
 (function () {
   const { ctx, W, H } = setupCanvas('run-canvas');
 
-  // Each stage: what it DOES, rendered as a mini illustration.
-  const STAGES = [
-    { id: 'task',     label: 'TASK',     sub: 'input',        color: '#18181B', x: W*0.11 },
-    { id: 'harness',  label: 'HARNESS',  sub: 'runs model',   color: '#0891b2', x: W*0.31 },
-    { id: 'model',    label: 'MODEL',    sub: 'returns answer', color: '#7c3aed', x: W*0.51 },
-    { id: 'verifier', label: 'VERIFIER', sub: 'pass / fail',  color: '#f59e0b', x: W*0.71 },
-    { id: 'reward',   label: 'REWARD',   sub: '+1 or 0',      color: '#16a34a', x: W*0.91 },
-  ];
+  // ── Layout ────────────────────────────────────────────────────────────
+  const CY   = H * 0.44;           // center lane y
+  const MX   = W * 0.46;           // model box center x
+  const MBW  = 86, MBH = 50;       // model box dimensions
+  const SX   = W * 0.84;           // score column center x
+  const TASK_ENTER_X = 0;
+  const HOLD_X = MX - MBW / 2 - 54; // tasks queue here
 
-  const BW = Math.min(78, W * 0.17), BH = Math.min(80, H * 0.48);
-  const LY = H * 0.48;
-  const particles = [];
-  let frame = 0;
-  let runningScore = { correct: 0, total: 0 };
+  // ── State ─────────────────────────────────────────────────────────────
+  const tasks = [];
+  let taskNum = 0, frame = 0;
+  let mState = 'idle', mTask = null, mTimer = 0;
+  const PASS_SEQ = [1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1,1];
+  let seqIdx = 0, nPass = 0, nTotal = 0, scoreDisp = 0;
+  // flying verdicts: { x, y, pass, alpha, vx }
+  const verdicts = [];
 
-  // A task is a bug-fix: its outcome is decided at spawn (deterministic example)
-  const TASKS = [
-    { name: 'null-ptr',    passed: true  },
-    { name: 'off-by-one',  passed: true  },
-    { name: 'race-cond',   passed: false },
-    { name: 'auth-bug',    passed: true  },
-    { name: 'mem-leak',    passed: false },
-    { name: 'sql-inj',     passed: true  },
-  ];
-  let taskIdx = 0;
+  const easeOut = t => 1 - (1 - t) * (1 - t);
 
-  function spawn() {
-    const t = TASKS[taskIdx++ % TASKS.length];
-    particles.push({
-      x: STAGES[0].x, y: LY, si: 0, progress: 0,
-      task: t, state: 'task' // task → patch → verdict → reward
-    });
+  function spawnTask() {
+    taskNum++;
+    tasks.push({ num: taskNum, x: TASK_ENTER_X - 22, alpha: 0 });
   }
 
-  function drawStage(s, activePulse) {
-    const x = s.x - BW/2, y = LY - BH/2;
-
-    // Card
-    ctx.shadowColor = s.color + (activePulse > 0 ? '33' : '15');
-    ctx.shadowBlur = 8 + activePulse * 10;
-    rrect(ctx, x, y, BW, BH, 8);
-    ctx.fillStyle = '#fff'; ctx.fill();
-    ctx.strokeStyle = s.color + '40'; ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Title strip at top
-    ctx.font = '700 9px Inter, sans-serif';
-    ctx.fillStyle = s.color;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(s.label, s.x, y + 8);
-    ctx.font = '500 8.5px Inter, sans-serif';
-    ctx.fillStyle = '#A1A1AA';
-    ctx.fillText(s.sub, s.x, y + 20);
-
-    // Separator
+  function dottedArrow(x0, x1, y) {
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1 - 7, y);
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 6]); ctx.stroke(); ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.moveTo(x + 10, y + 34); ctx.lineTo(x + BW - 10, y + 34);
-    ctx.strokeStyle = '#EEEEF2'; ctx.lineWidth = 1; ctx.stroke();
-
-    // Body illustration
-    const bx = s.x, by = y + BH*0.72;
-
-    if (s.id === 'task') {
-      // Bug report card: # lines
-      const px = s.x - 18, py = y + 40;
-      ctx.fillStyle = '#18181B';
-      ctx.font = '700 10px ui-monospace, Menlo, monospace';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText('#bug', px, py);
-      // mini code lines
-      for (let i = 0; i < 3; i++) {
-        ctx.fillStyle = '#D4D4D8';
-        ctx.fillRect(px, py + 14 + i*5, 30 - i*6, 2);
-      }
-    } else if (s.id === 'harness') {
-      // Terminal: prompt + blinking caret
-      const px = s.x - 22, py = y + 40;
-      rrect(ctx, px, py, 44, 24, 3);
-      ctx.fillStyle = '#f4f4f5'; ctx.fill();
-      ctx.font = '700 8px ui-monospace, Menlo, monospace';
-      ctx.fillStyle = '#0891b2'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText('$ run', px + 4, py + 5);
-      if (Math.floor(frame/20) % 2 === 0) {
-        ctx.fillRect(px + 28, py + 13, 5, 2);
-      }
-    } else if (s.id === 'model') {
-      // Brain/agent node
-      const cy = by - 4;
-      ctx.beginPath(); ctx.arc(s.x, cy, 13, 0, Math.PI*2);
-      ctx.fillStyle = '#f5f3ff'; ctx.fill();
-      ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 1.3; ctx.stroke();
-      // thinking dots
-      for (let i = 0; i < 3; i++) {
-        const bob = activePulse > 0 ? Math.sin(frame * 0.15 + i * 1.1) * 1.5 : 0;
-        ctx.beginPath(); ctx.arc(s.x - 6 + i*6, cy + bob, 1.8, 0, Math.PI*2);
-        ctx.fillStyle = '#7c3aed'; ctx.fill();
-      }
-    } else if (s.id === 'verifier') {
-      // Test suite: row of pass/fail checks
-      const px = s.x - 22, py = y + 42;
-      const tests = [1,1,0,1,1];
-      tests.forEach((t, i) => {
-        const tx = px + i*9;
-        ctx.fillStyle = t ? '#16a34a' : '#dc2626';
-        if (t) {
-          ctx.beginPath();
-          ctx.moveTo(tx, py+4); ctx.lineTo(tx+2.5, py+7); ctx.lineTo(tx+7, py+1.5);
-          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-          ctx.stroke();
-        } else {
-          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.6; ctx.lineCap='round';
-          ctx.beginPath();
-          ctx.moveTo(tx, py); ctx.lineTo(tx+6, py+7);
-          ctx.moveTo(tx+6, py); ctx.lineTo(tx, py+7);
-          ctx.stroke();
-        }
-      });
-      ctx.lineCap = 'butt';
-    } else if (s.id === 'reward') {
-      // Running tally
-      const pct = runningScore.total > 0
-        ? Math.round(runningScore.correct/runningScore.total*100)
-        : 0;
-      ctx.font = '800 22px Inter, sans-serif';
-      ctx.fillStyle = '#16a34a';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(pct + '%', s.x, y + BH*0.68);
-      ctx.font = '500 8px Inter, sans-serif';
-      ctx.fillStyle = '#A1A1AA';
-      ctx.fillText(runningScore.correct + '/' + runningScore.total, s.x, y + BH - 13);
-    }
+    ctx.moveTo(x1, y); ctx.lineTo(x1 - 6, y - 3.5);
+    ctx.moveTo(x1, y); ctx.lineTo(x1 - 6, y + 3.5);
+    ctx.strokeStyle = '#BDBDC7'; ctx.lineWidth = 1.2; ctx.stroke();
   }
 
-  function drawParticle(p) {
-    const nextX = STAGES[p.si+1] ? STAGES[p.si+1].x - BW/2 : null;
-    const curX = STAGES[p.si].x + BW/2;
-    if (nextX === null) return false;
-
-    // Move
-    const travel = nextX - curX;
-    p.progress += 1.2 / travel;
-    if (p.progress >= 1) {
-      p.si++;
-      p.progress = 0;
-      // State transitions: task -> patch -> verdict -> reward
-      if (p.si === 1) p.state = 'task';
-      else if (p.si === 2) p.state = 'task';   // still carrying task in
-      else if (p.si === 3) p.state = 'patch';  // model produced a patch
-      else if (p.si === 4) {
-        p.state = 'verdict';
-        // Score this task
-        runningScore.total++;
-        if (p.task.passed) runningScore.correct++;
-      }
-      if (p.si >= STAGES.length - 1) return false;
-    }
-    const x = curX + travel * p.progress;
-    const y = LY;
-
-    // Draw based on state
-    ctx.save();
-    if (p.state === 'task') {
-      // Tiny doc icon
-      rrect(ctx, x-4, y-5, 8, 10, 1.5);
-      ctx.fillStyle = '#18181B'; ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(x-2, y-3, 4, 0.8);
-      ctx.fillRect(x-2, y-1, 4, 0.8);
-      ctx.fillRect(x-2, y+1, 3, 0.8);
-    } else if (p.state === 'patch') {
-      // Purple diamond (patch)
-      ctx.translate(x, y); ctx.rotate(Math.PI/4);
-      ctx.fillStyle = '#7c3aed';
-      ctx.fillRect(-4, -4, 8, 8);
-    } else if (p.state === 'verdict') {
-      // Pass/fail
-      const col = p.task.passed ? '#16a34a' : '#dc2626';
-      ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2);
-      ctx.fillStyle = col; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      if (p.task.passed) {
-        ctx.moveTo(x-2.2, y); ctx.lineTo(x-0.5, y+1.8); ctx.lineTo(x+2.4, y-1.5);
-      } else {
-        ctx.moveTo(x-2, y-2); ctx.lineTo(x+2, y+2);
-        ctx.moveTo(x+2, y-2); ctx.lineTo(x-2, y+2);
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-    return true;
+  function drawPill(cx, cy, label, alpha) {
+    const pw = 48, ph = 22;
+    ctx.globalAlpha = alpha;
+    rrect(ctx, cx - pw / 2, cy - ph / 2, pw, ph, 5);
+    ctx.fillStyle = '#F4F4F5'; ctx.fill();
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.font = '500 7.5px Inter, sans-serif';
+    ctx.fillStyle = '#52525B'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx, cy);
+    ctx.globalAlpha = 1;
   }
 
   function animate() {
     ctx.clearRect(0, 0, W, H);
     frame++;
-    if (frame % 80 === 0) spawn();
 
-    // Connecting lines
-    for (let i = 0; i < STAGES.length - 1; i++) {
-      const x0 = STAGES[i].x + BW/2, x1 = STAGES[i+1].x - BW/2;
-      ctx.beginPath(); ctx.moveTo(x0, LY); ctx.lineTo(x1, LY);
-      ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1.3;
-      ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
-      // Arrowhead
-      ctx.beginPath();
-      ctx.moveTo(x1, LY); ctx.lineTo(x1-6, LY-3.5);
-      ctx.moveTo(x1, LY); ctx.lineTo(x1-6, LY+3.5);
-      ctx.strokeStyle = '#C4C4CA'; ctx.lineWidth = 1.1; ctx.stroke();
+    if (frame % 56 === 0 && tasks.length < 4) spawnTask();
+
+    // ── Connector arrows ─────────────────────────────────────────────────
+    dottedArrow(W * 0.05, MX - MBW / 2 - 2, CY);
+    dottedArrow(MX + MBW / 2 + 2, SX - 34, CY);
+
+    // ── Task queue (left) ────────────────────────────────────────────────
+    const SPEED = 2.0;
+    for (let i = tasks.length - 1; i >= 0; i--) {
+      const t = tasks[i];
+      t.alpha = Math.min(1, t.alpha + 0.06);
+      // Each task slots in behind the previous one
+      const targetX = HOLD_X - i * 54;
+      if (t.x < targetX) t.x = Math.min(t.x + SPEED, targetX);
+
+      // Front task: when model idle and task reaches hold point, consume it
+      if (i === 0 && mState === 'idle' && t.x >= HOLD_X - 2) {
+        mState = 'in'; mTask = { ...t }; mTimer = 0;
+        tasks.splice(0, 1);
+        break;
+      }
+
+      drawPill(t.x, CY, 'Task ' + t.num, t.alpha);
     }
 
-    // Figure out which stage has an active particle (for pulse)
-    const activeStages = new Set();
-    particles.forEach(p => activeStages.add(p.si + 1));
+    // ── Model state machine ──────────────────────────────────────────────
+    mTimer++;
+    if (mState === 'in') {
+      // Pill shrinks and fades into model box
+      const prog = Math.min(mTimer / 20, 1);
+      const px = mTask.x + (MX - mTask.x) * easeOut(prog);
+      drawPill(px, CY, 'Task ' + mTask.num, 1 - prog * 0.9);
+      if (mTimer >= 20) { mState = 'processing'; mTimer = 0; }
+    }
+    else if (mState === 'processing' && mTimer > 46) {
+      const pass = !!PASS_SEQ[seqIdx++ % PASS_SEQ.length];
+      nTotal++; if (pass) nPass++;
+      verdicts.push({ x: MX + MBW / 2 + 4, y: CY, pass, alpha: 1, vx: 2.6 });
+      mState = 'out'; mTimer = 0;
+    }
+    else if (mState === 'out' && mTimer > 18) { mState = 'idle'; mTimer = 0; }
 
-    // Stages
-    STAGES.forEach((s, si) => {
-      const pulse = activeStages.has(si) ? (Math.sin(frame*0.15)*0.5+0.5) : 0;
-      drawStage(s, pulse);
-    });
+    // ── MODEL box ────────────────────────────────────────────────────────
+    const isProc = mState === 'processing' || mState === 'in';
+    const pulse = Math.sin(frame * 0.09) * 0.5 + 0.5;
+    ctx.shadowColor = `rgba(124,58,237,${0.05 + (isProc ? pulse * 0.12 : 0)})`;
+    ctx.shadowBlur  = isProc ? 14 + pulse * 8 : 3;
+    rrect(ctx, MX - MBW / 2, CY - MBH / 2, MBW, MBH, 10);
+    ctx.fillStyle = '#f5f3ff'; ctx.fill();
+    ctx.strokeStyle = `rgba(124,58,237,${0.20 + (isProc ? pulse * 0.24 : 0)})`;
+    ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
 
-    // Particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const alive = drawParticle(particles[i]);
-      if (!alive) particles.splice(i, 1);
+    ctx.font = '700 11px Inter, sans-serif'; ctx.fillStyle = '#7c3aed';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('MODEL', MX, CY + (isProc ? -7 : 0));
+    if (isProc) {
+      for (let i = 0; i < 3; i++) {
+        const b = Math.sin(frame * 0.13 + i * 1.1) * 2.5;
+        ctx.beginPath(); ctx.arc(MX - 8 + i * 8, CY + 7 + b, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#7c3aed60'; ctx.fill();
+      }
+    }
+
+    // ── Flying verdicts ──────────────────────────────────────────────────
+    for (let i = verdicts.length - 1; i >= 0; i--) {
+      const v = verdicts[i];
+      v.x += v.vx;
+      v.vx *= 0.93; // decelerate
+      // Start fading after reaching score zone
+      if (v.x > SX - 40) v.alpha = Math.max(0, v.alpha - 0.06);
+      if (v.alpha <= 0) { verdicts.splice(i, 1); continue; }
+
+      ctx.globalAlpha = v.alpha;
+      ctx.font = `700 ${Math.round(14 + (1 - v.alpha) * 8)}px Inter, sans-serif`;
+      ctx.fillStyle = v.pass ? '#16a34a' : '#dc2626';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(v.pass ? '✓' : '✗', v.x, v.y);
+      ctx.globalAlpha = 1;
+    }
+
+    // ── Section labels ───────────────────────────────────────────────────
+    ctx.font = '500 8px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('TASK BANK', W * 0.10, CY + MBH / 2 + 10);
+    ctx.fillText('GRADER', MX + MBW / 2 + 28, CY + MBH / 2 + 10);
+
+    // ── Score column ─────────────────────────────────────────────────────
+    if (nTotal > 0) {
+      const target = Math.round(nPass / nTotal * 100);
+      if (scoreDisp < target) scoreDisp++;
+      else if (scoreDisp > target) scoreDisp--;
+
+      ctx.font = '600 8.5px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('SCORE', SX, CY - 24);
+
+      ctx.font = '800 42px Inter, sans-serif'; ctx.fillStyle = '#18181B';
+      ctx.fillText(scoreDisp + '%', SX, CY + 4);
+
+      ctx.font = '500 8px Inter, sans-serif'; ctx.fillStyle = '#A1A1AA';
+      ctx.fillText(nTotal + ' tasks', SX, CY + 30);
+    } else {
+      ctx.font = '600 8.5px Inter, sans-serif'; ctx.fillStyle = '#D4D4D8';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('SCORE', SX, CY - 24);
+      ctx.font = '800 42px Inter, sans-serif'; ctx.fillStyle = '#E4E4E7';
+      ctx.fillText('—', SX, CY + 4);
     }
 
     requestAnimationFrame(animate);
   }
+
+  spawnTask();
   animate();
-  spawn();
-  setTimeout(spawn, 1200);
 })();
 
 // ─── 4. The Race (race-canvas) ───────────────────────────────────────────────
