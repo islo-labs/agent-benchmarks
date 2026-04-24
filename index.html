@@ -493,22 +493,26 @@
     @media (max-width: 760px) {
       h1 { font-size: 30px; }
 
-      .nav-inner { padding: 0 20px; }
+      .nav-inner { padding: 0 16px; }
 
-      .hero { padding: 56px 20px 56px; }
+      .hero { padding: 48px 20px; min-height: 75vh; }
       .hero-sub { font-size: 15px; }
 
-      .chapter { padding: 60px 20px; }
-      .chapter-inner { grid-template-columns: 1fr; gap: 36px; }
+      .chapter { padding: 48px 20px; }
+      .chapter-inner { grid-template-columns: 1fr; gap: 28px; }
       .chapter.flip .chapter-inner { direction: ltr; }
 
-      .statement { padding: 60px 20px 48px; }
+      .vis-label { display: none; }
+
+      .statement { padding: 48px 20px 40px; }
       .statement-sub { font-size: 14px; }
       .split-vis { grid-template-columns: 1fr; gap: 14px; }
       .split-closing { font-size: 15px; }
 
-      .further { padding: 56px 20px; }
+      .further { padding: 48px 20px; }
       .fr-grid { grid-template-columns: 1fr; gap: 12px; }
+
+      .split-panel-footer { gap: 12px; padding: 12px 14px; }
 
       .footer-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
     }
@@ -920,8 +924,9 @@ function rrect(ctx, x, y, w, h, r) {
   let taskAlpha = 0, currentTask = null, resultDots = [], resultsShown = 0;
   let totalCorrect = 0, totalTests = 0;
 
-  const AGX = W * 0.5, AGY = H * 0.5, AGW = 88, AGH = 42;
-  const CARD_X = W * 0.15, RES_X = W * 0.73, RES_Y = H * 0.33;
+  const cardHW = Math.min(56, W * 0.13);
+  const AGX = W * 0.5, AGY = H * 0.5, AGW = Math.min(88, W * 0.22), AGH = 42;
+  const CARD_X = W * 0.16, RES_X = W * 0.73, RES_Y = H * 0.33;
 
   function nextTask() {
     currentTask = TASKS[tidx++ % TASKS.length];
@@ -952,14 +957,14 @@ function rrect(ctx, x, y, w, h, r) {
 
     // Flow lines
     ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.moveTo(CARD_X+56, H/2); ctx.lineTo(AGX-AGW/2-6, AGY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(CARD_X+cardHW, H/2); ctx.lineTo(AGX-AGW/2-6, AGY); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(AGX+AGW/2+6, AGY); ctx.lineTo(RES_X-10, AGY); ctx.stroke();
     ctx.setLineDash([]);
 
     // Task card
     if (currentTask && taskAlpha > 0) {
       ctx.globalAlpha = taskAlpha;
-      rrect(ctx, CARD_X-56, H/2-32, 112, 64, 7);
+      rrect(ctx, CARD_X-cardHW, H/2-32, cardHW*2, 64, 7);
       ctx.fillStyle = '#fff'; ctx.fill();
       ctx.strokeStyle = '#E8E8EC'; ctx.lineWidth = 1; ctx.stroke();
 
@@ -1039,7 +1044,7 @@ function rrect(ctx, x, y, w, h, r) {
     { label: 'GRADER',      color: '#f59e0b', x: W*0.70 },
     { label: 'SCORE',       color: '#16a34a', x: W*0.90 },
   ];
-  const BW = 54, BH = 34, LY = H * 0.5;
+  const BW = Math.min(54, W * 0.14), BH = 34, LY = H * 0.5;
   const particles = [];
   let frame = 0;
 
@@ -1102,6 +1107,7 @@ function rrect(ctx, x, y, w, h, r) {
   ];
   const MAX = 93;
   const CEILING = 88;
+  const small = H < 240;
   let frame = 0;
 
   function animate() {
@@ -1112,9 +1118,9 @@ function rrect(ctx, x, y, w, h, r) {
     }
 
     const sorted = [...MODELS].sort((a, b) => b.score - a.score);
-    const LBL = 76, BAR_MAX = W - LBL - 58;
-    const BAR_H = 26, GAP = 11;
-    const startY = (H - MODELS.length*(BAR_H+GAP)+GAP) / 2;
+    const BAR_H = small ? 20 : 26, GAP = small ? 8 : 11;
+    const LBL = small ? 58 : 76, BAR_MAX = W - LBL - 52;
+    const startY = Math.max(24, (H - MODELS.length*(BAR_H+GAP)+GAP) / 2);
 
     ctx.font = '600 9px Inter, sans-serif';
     ctx.fillStyle = '#A1A1AA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
@@ -1448,7 +1454,8 @@ function rrect(ctx, x, y, w, h, r) {
 // ─── 4. Infrastructure — shared factory ──────────────────────────────────────
 function makeInfraCanvas(id, controlled) {
   const { ctx, W, H } = setupCanvas(id);
-  const CX = W / 2, CY = H / 2, R = 72;
+  const CX = W / 2, CY = H / 2, R = Math.min(72, H * 0.28);
+  const labelOff = Math.min(27, R * 0.37);
   const particles = [];
   let frame = 0;
 
@@ -1466,7 +1473,7 @@ function makeInfraCanvas(id, controlled) {
   }
   function spawnExploit() {
     const a = EXPLOIT_ANGLES[ei++ % EXPLOIT_ANGLES.length];
-    const d = R + 48 + Math.random()*24;
+    const d = R + Math.min(48, H * 0.22) + Math.random()*16;
     particles.push({ type:'exploit',
       x:CX+Math.cos(a)*d, y:CY+Math.sin(a)*d,
       color:'#dc2626', size:4.2, trail:[],
@@ -1494,7 +1501,7 @@ function makeInfraCanvas(id, controlled) {
     // Gate markers + labels
     GATES.forEach(g => {
       const gx = CX+Math.cos(g.angle)*R, gy = CY+Math.sin(g.angle)*R;
-      const lx = CX+Math.cos(g.angle)*(R+27), ly = CY+Math.sin(g.angle)*(R+27);
+      const lx = CX+Math.cos(g.angle)*(R+labelOff), ly = CY+Math.sin(g.angle)*(R+labelOff);
       ctx.beginPath(); ctx.arc(gx, gy, 5, 0, Math.PI*2);
       ctx.fillStyle = controlled ? '#16a34a' : '#ea580c'; ctx.fill();
       ctx.font = '600 9px Inter, sans-serif';
