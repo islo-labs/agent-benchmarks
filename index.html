@@ -610,6 +610,7 @@
       .chapter-inner { grid-template-columns: 1fr; gap: 28px; }
       .chapter.flip .chapter-inner { direction: ltr; }
 
+      .vis { padding: 8px; }
       .vis-label { display: none; }
 
       .statement { padding: 48px 20px 40px; }
@@ -680,19 +681,11 @@
     .sticky-btn-x { background: #000; color: #fff; border-color: #000; }
     .sticky-btn-x:hover { background: #222; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
     .sticky-btn-copy.copied { border-color: #16a34a; color: #16a34a; }
-    .sticky-close {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; border-radius: 50%;
-      border: 1px solid var(--border); background: transparent;
-      color: var(--faint); cursor: pointer; font-size: 16px; line-height: 1;
-      transition: background .15s, color .15s;
-      flex-shrink: 0;
-    }
-    .sticky-close:hover { background: var(--bg); color: var(--text); }
     @media (max-width: 600px) {
       .sticky-share { width: calc(100% - 32px); bottom: 16px; }
       .sticky-share-msg { display: none; }
-      .sticky-share-inner { padding: 8px 8px 8px 16px; }
+      .sticky-share-inner { padding: 8px; justify-content: center; }
+      .sticky-share-actions { margin: 0 auto; }
     }
   </style>
 </head>
@@ -712,7 +705,6 @@
         <span>Copy link</span>
       </button>
     </div>
-    <button class="sticky-close" id="sticky-close" aria-label="Dismiss">×</button>
   </div>
 </div>
 
@@ -1415,22 +1407,25 @@ function rrect(ctx, x, y, w, h, r) {
   const easeOut = t => 1 - (1-t)*(1-t);
 
   // ── Layout ────────────────────────────────────────────────────────────
+  const isMobile = W < 440;
   const LY   = Math.round(H * 0.42);   // pipeline lane y
-  const MX   = Math.round(W * 0.36);   // MODEL center x
-  const VX   = Math.round(W * 0.60);   // VERIFIER center x
-  const BW   = 76, BH = 42;
+  const MX   = Math.round(W * (isMobile ? 0.30 : 0.36));   // MODEL center x
+  const VX   = Math.round(W * (isMobile ? 0.54 : 0.60));   // VERIFIER center x
+  const BW   = isMobile ? 58 : 76, BH = isMobile ? 32 : 42;
 
-  // Reward token grid (right side)
-  const TR   = 13;                      // token radius
-  const TCOL = 4, TROW = 4;
-  const TGAP = 5;
-  const TGRID_W = TCOL * (TR*2 + TGAP) - TGAP;   // 4*(26+5)-5 = 119
-  const TGRID_X = W - TGRID_W - 14;               // left edge of grid
+  // Reward token grid (right side) — shrinks on mobile so it doesn't collide
+  // with the verifier box.
+  const TR   = isMobile ? 8 : 13;
+  const TCOL = isMobile ? 3 : 4;
+  const TROW = isMobile ? 3 : 4;
+  const TGAP = isMobile ? 3 : 5;
+  const TGRID_W = TCOL * (TR*2 + TGAP) - TGAP;
+  const TGRID_X = W - TGRID_W - (isMobile ? 8 : 14);
   const TGRID_Y = Math.round(H * 0.10);            // top of grid
-  const TMAX    = TCOL * TROW;                     // 16 max visible
+  const TMAX    = TCOL * TROW;
 
   // Task entry hold point (where circle waits before flying into model)
-  const HOLD_X  = MX - BW/2 - 28;
+  const HOLD_X  = MX - BW/2 - (isMobile ? 18 : 28);
 
   // ── State ─────────────────────────────────────────────────────────────
   let frame = 0, taskNum = 0;
@@ -1477,7 +1472,7 @@ function rrect(ctx, x, y, w, h, r) {
     ctx.beginPath(); ctx.arc(0, 0, TR, 0, Math.PI*2);
     ctx.fillStyle = tok.pass ? '#DCFCE7' : '#FEE2E2'; ctx.fill();
     ctx.strokeStyle = tok.pass ? '#16a34a' : '#dc2626'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.font = '800 14px Inter,sans-serif';
+    ctx.font = `800 ${isMobile ? 10 : 14}px Inter,sans-serif`;
     ctx.fillStyle = tok.pass ? '#16a34a' : '#dc2626';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(tok.pass ? '1' : '0', 0, 0);
@@ -1614,13 +1609,13 @@ function rrect(ctx, x, y, w, h, r) {
       if (scoreDisp < target) scoreDisp++;
       else if (scoreDisp > target) scoreDisp--;
     }
-    const scoreY = TGRID_Y + TROW * (TR*2 + TGAP) + 14;
+    const scoreY = TGRID_Y + TROW * (TR*2 + TGAP) + (isMobile ? 10 : 14);
     ctx.font = '600 8.5px Inter,sans-serif'; ctx.fillStyle = '#A1A1AA';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     ctx.fillText('SCORE', TGRID_X + TGRID_W/2, scoreY);
-    ctx.font = '800 36px Inter,sans-serif';
+    ctx.font = `800 ${isMobile ? 22 : 36}px Inter,sans-serif`;
     ctx.fillStyle = nTotal > 0 ? '#18181B' : '#E4E4E7';
-    ctx.fillText(nTotal > 0 ? scoreDisp + '%' : '—', TGRID_X + TGRID_W/2, scoreY + 13);
+    ctx.fillText(nTotal > 0 ? scoreDisp + '%' : '—', TGRID_X + TGRID_W/2, scoreY + (isMobile ? 10 : 13));
 
     requestAnimationFrame(animate);
   }
@@ -2106,7 +2101,6 @@ document.getElementById('islo-link').addEventListener('click', () => {
   const bar      = document.getElementById('sticky-share');
   const tweetBtn = document.getElementById('sticky-tweet');
   const copyBtn  = document.getElementById('sticky-copy');
-  const closeBtn = document.getElementById('sticky-close');
   const hero     = document.getElementById('hero-section');
   if (!bar || !hero) return;
 
@@ -2118,20 +2112,20 @@ document.getElementById('islo-link').addEventListener('click', () => {
   const navTweet = document.getElementById('nav-tweet');
   if (navTweet) navTweet.href = tweetBtn.href;
 
-  let dismissed = false;
-  try { if (sessionStorage.getItem('share-bar-dismissed') === '1') dismissed = true; } catch (_) {}
+  let heroVisible = true, footerVisible = false;
+  const update = () => {
+    if (!heroVisible && !footerVisible) bar.classList.add('visible');
+    else bar.classList.remove('visible');
+  };
 
-  const obs = new IntersectionObserver(entries => {
-    if (!dismissed && !entries[0].isIntersecting) bar.classList.add('visible');
-    else if (!dismissed) bar.classList.remove('visible');
-  }, { threshold: 0.1 });
-  obs.observe(hero);
+  new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; update(); },
+    { threshold: 0.1 }).observe(hero);
 
-  closeBtn.addEventListener('click', () => {
-    dismissed = true;
-    bar.classList.remove('visible');
-    try { sessionStorage.setItem('share-bar-dismissed', '1'); } catch (_) {}
-  });
+  const footer = document.querySelector('footer');
+  if (footer) {
+    new IntersectionObserver(([e]) => { footerVisible = e.isIntersecting; update(); },
+      { threshold: 0 }).observe(footer);
+  }
 
   // Copy link with safe DOM updates (targets the <span> already in the button)
   const copyLabel = copyBtn.querySelector('span');
