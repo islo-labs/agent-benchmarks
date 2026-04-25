@@ -1284,7 +1284,25 @@ function rrect(ctx, x, y, w, h, r) {
   let cardX = 0, verdict = null, vX = 0, vAlpha = 0;
   let nPass = 0, nDone = 0, scoreDisp = 0, scoreTarget = 0;
 
-  const STACK_X = W * 0.17, MODEL_X = W * 0.50, SCORE_X = W * 0.83, MID_Y = H * 0.50;
+  // Layout — mobile branch shrinks every fixed-pixel piece so the arrows
+  // and verdict glyph aren't clipped by the boxes or score text.
+  const isMobile = W < 440;
+  const CARD_W   = isMobile ? 64 : 88;
+  const CARD_H   = isMobile ? 40 : 52;
+  const CARD_HW  = CARD_W / 2;
+  const MBOX_W   = isMobile ? 72 : 92;
+  const MBOX_H   = isMobile ? 44 : 56;
+  const MBOX_HW  = MBOX_W / 2;
+  const MBOX_HH  = MBOX_H / 2;
+  const SCORE_FS    = isMobile ? 26 : 44;
+  const SCORE_LBL_OFF = isMobile ? 26 : 36;
+  const RANK_OFF    = isMobile ? 28 : 40;
+  const VERDICT_FS  = isMobile ? 14 : 18;
+  const VERDICT_SPEED = isMobile ? 0.6 : 1.8;
+  const STACK_X = W * (isMobile ? 0.14 : 0.17);
+  const MODEL_X = W * (isMobile ? 0.45 : 0.50);
+  const SCORE_X = W * 0.83;
+  const MID_Y = H * 0.50;
   const easeIO = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
 
   function next() {
@@ -1295,15 +1313,16 @@ function rrect(ctx, x, y, w, h, r) {
 
   function drawCard(cx, cy, label, alpha) {
     ctx.globalAlpha = alpha;
-    rrect(ctx, cx - 44, cy - 26, 88, 52, 8);
+    rrect(ctx, cx - CARD_HW, cy - CARD_H/2, CARD_W, CARD_H, 8);
     ctx.fillStyle = '#fff'; ctx.fill();
     ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1; ctx.stroke();
     ctx.font = '500 8.5px Inter, sans-serif'; ctx.fillStyle = '#52525B';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const words = label.split(' '); let ln = '', ls = [];
+    const maxW = CARD_W - 16;
     for (const w of words) {
       const t = ln ? ln+' '+w : w;
-      if (ctx.measureText(t).width > 72 && ln) { ls.push(ln); ln = w; } else ln = t;
+      if (ctx.measureText(t).width > maxW && ln) { ls.push(ln); ln = w; } else ln = t;
     }
     if (ln) ls.push(ln);
     ls.forEach((l, i) => ctx.fillText(l, cx, cy + (i-(ls.length-1)/2)*12));
@@ -1316,18 +1335,18 @@ function rrect(ctx, x, y, w, h, r) {
 
     if      (phase === 'wait'    && pf > 26) next();
     else if (phase === 'fly') {
-      cardX = STACK_X + (MODEL_X - STACK_X - 48) * easeIO(Math.min(pf/36, 1));
+      cardX = STACK_X + (MODEL_X - STACK_X - (MBOX_HW + 4)) * easeIO(Math.min(pf/36, 1));
       if (pf >= 36) { phase = 'process'; pf = 0; }
     }
     else if (phase === 'process' && pf > 50) {
-      verdict = current.pass; vX = MODEL_X + 48; vAlpha = 0;
+      verdict = current.pass; vX = MODEL_X + MBOX_HW + 4; vAlpha = 0;
       if (verdict) nPass++;
       nDone++;
       scoreTarget = nDone > 0 ? Math.round(nPass/nDone*100) : 0;
       phase = 'verdict'; pf = 0;
     }
     else if (phase === 'verdict') {
-      vAlpha = Math.min(pf/10, 1); vX += 1.8;
+      vAlpha = Math.min(pf/10, 1); vX += VERDICT_SPEED;
       if (pf > 50) { phase = 'done'; pf = 0; }
     }
     else if (phase === 'done') {
@@ -1350,7 +1369,7 @@ function rrect(ctx, x, y, w, h, r) {
 
     // Stack (3 background cards)
     [2,1].forEach(l => {
-      rrect(ctx, STACK_X-44+l*3, MID_Y-26-l*3, 88, 52, 8);
+      rrect(ctx, STACK_X-CARD_HW+l*3, MID_Y-CARD_H/2-l*3, CARD_W, CARD_H, 8);
       ctx.fillStyle = l===2?'#E4E4E7':'#F0F0F1'; ctx.fill();
       ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth=1; ctx.stroke();
     });
@@ -1362,8 +1381,17 @@ function rrect(ctx, x, y, w, h, r) {
       if (fa > 0) drawCard(cardX, MID_Y, current.label, fa);
     }
 
+    // Mobile: shorten the model→score arrow when the live percentage text
+    // is wide enough to swallow the arrowhead.
+    let arrowToScoreX = SCORE_X - 34;
+    if (isMobile) {
+      ctx.font = `800 ${SCORE_FS}px Inter, sans-serif`;
+      const scoreHalfW = ctx.measureText(scoreDisp + '%').width / 2;
+      arrowToScoreX = Math.min(arrowToScoreX, SCORE_X - scoreHalfW - 8);
+    }
+
     // Arrows
-    [[STACK_X+44, MODEL_X-50],[MODEL_X+50, SCORE_X-34]].forEach(([x0,x1]) => {
+    [[STACK_X+CARD_HW, MODEL_X-MBOX_HW-4],[MODEL_X+MBOX_HW+4, arrowToScoreX]].forEach(([x0,x1]) => {
       ctx.beginPath(); ctx.moveTo(x0,MID_Y); ctx.lineTo(x1,MID_Y);
       ctx.strokeStyle='#E8E8EC'; ctx.lineWidth=1; ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(x1,MID_Y); ctx.lineTo(x1-6,MID_Y-3.5); ctx.moveTo(x1,MID_Y); ctx.lineTo(x1-6,MID_Y+3.5);
@@ -1374,7 +1402,7 @@ function rrect(ctx, x, y, w, h, r) {
     const isProc = phase==='process';
     const pulse = Math.sin(frame*0.09)*0.5+0.5;
     ctx.shadowColor = `rgba(124,58,237,${0.07+pulse*0.13})`; ctx.shadowBlur = isProc ? 14+pulse*8 : 4;
-    rrect(ctx, MODEL_X-46, MID_Y-28, 92, 56, 10);
+    rrect(ctx, MODEL_X-MBOX_HW, MID_Y-MBOX_HH, MBOX_W, MBOX_H, 10);
     ctx.fillStyle='#f5f3ff'; ctx.fill();
     ctx.strokeStyle=`rgba(124,58,237,${0.25+pulse*0.2})`; ctx.lineWidth=1.5; ctx.stroke();
     ctx.shadowBlur=0;
@@ -1389,26 +1417,27 @@ function rrect(ctx, x, y, w, h, r) {
       }
     }
 
-    // Verdict
+    // Verdict — clamped on mobile so it never reaches the score text.
     if (verdict!==null && (phase==='verdict'||phase==='done')) {
+      const vDrawX = isMobile ? Math.min(vX, arrowToScoreX - 10) : vX;
       ctx.globalAlpha=vAlpha;
-      ctx.font='700 18px Inter, sans-serif'; ctx.fillStyle=verdict?'#16a34a':'#dc2626';
+      ctx.font=`700 ${VERDICT_FS}px Inter, sans-serif`; ctx.fillStyle=verdict?'#16a34a':'#dc2626';
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(verdict?'✓':'✗', vX, MID_Y);
+      ctx.fillText(verdict?'✓':'✗', vDrawX, MID_Y);
       ctx.globalAlpha=1;
     }
 
     // Score
     ctx.font='600 9px Inter, sans-serif'; ctx.fillStyle='#A1A1AA';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('SCORE', SCORE_X, MID_Y-36);
-    ctx.font='800 44px Inter, sans-serif'; ctx.fillStyle='#18181B';
+    ctx.fillText('SCORE', SCORE_X, MID_Y-SCORE_LBL_OFF);
+    ctx.font=`800 ${SCORE_FS}px Inter, sans-serif`; ctx.fillStyle='#18181B';
     ctx.textBaseline='middle';
     ctx.fillText(scoreDisp+'%', SCORE_X, MID_Y+6);
     if (nDone > 4) {
       const rank = scoreDisp>78?'Rank #1':scoreDisp>66?'Rank #2':'Rank #3';
       ctx.font='500 10px Inter, sans-serif'; ctx.fillStyle='#A1A1AA'; ctx.textBaseline='middle';
-      ctx.fillText(rank, SCORE_X, MID_Y+40);
+      ctx.fillText(rank, SCORE_X, MID_Y+RANK_OFF);
     }
 
     requestAnimationFrame(animate);
