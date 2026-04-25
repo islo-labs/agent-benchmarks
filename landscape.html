@@ -412,13 +412,21 @@
     .footer-r a { color: var(--purple); }
     .footer-r a:hover { text-decoration: underline; }
     .built-with {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 4px 10px; border-radius: 100px;
-      border: 1px solid var(--p200); background: var(--p50);
-      font-size: 11px; font-weight: 600; color: var(--purple);
-      transition: background .15s, box-shadow .15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 100px;
+      background: var(--purple); color: var(--white);
+      font-size: 12.5px; font-weight: 600; letter-spacing: -.005em;
+      box-shadow: 0 2px 8px rgba(124,58,237,.25);
+      transition: background .15s, box-shadow .15s, transform .12s;
     }
-    .built-with:hover { background: var(--p100); box-shadow: 0 2px 8px rgba(124,58,237,.12); text-decoration: none !important; }
+    .built-with:hover {
+      background: var(--purple-lt);
+      box-shadow: 0 4px 14px rgba(124,58,237,.35);
+      transform: translateY(-1px);
+      text-decoration: none !important;
+    }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .built-with-nav { padding: 5px 12px; font-size: 12px; box-shadow: 0 1px 6px rgba(124,58,237,.22); }
 
     @media (max-width: 760px) {
       h1 { font-size: 30px; }
@@ -465,7 +473,13 @@
 
 <nav>
   <div class="nav-inner">
-    <a class="nav-link" href="index.html">← The Story</a>
+    <a class="built-with built-with-nav" id="islo-link-nav" href="https://islo.dev?utm_source=agent-benchmarks&utm_medium=nav" target="_blank" rel="noopener">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L1.5 5.5H4.5L3 9L8.5 4H5.5L7 1H5Z" fill="currentColor"/></svg>
+      Built with islo
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="index.html">← The Story</a>
+    </div>
   </div>
 </nav>
 
@@ -796,8 +810,12 @@ render();
   });
 })();
 
-document.getElementById('islo-link').addEventListener('click', () => {
-  posthog.capture('islo_link_clicked', { page: 'landscape' });
+['islo-link', 'islo-link-nav'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', () => {
+    posthog.capture('islo_link_clicked', { page: 'landscape', placement: id === 'islo-link-nav' ? 'nav' : 'footer' });
+  });
 });
 </script>
 </body>
