@@ -44,10 +44,10 @@ export function EmailCapture({ state, result }: EmailCaptureProps) {
       className="rounded-2xl border border-dashed border-line-2 bg-bg-1 p-6"
     >
       <p className="mb-1 text-sm font-medium text-ink">
-        Want the full breakdown + playbook?
+        Want a personalized improvement plan?
       </p>
       <p className="mb-4 text-sm text-ink-4">
-        Optional — we'll save your result and follow up with a detailed report.
+        Optional — we'll email a step-by-step playbook to raise your score.
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row">
