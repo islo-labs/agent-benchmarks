@@ -7,7 +7,8 @@ import {
   shareToLinkedIn,
   shareToX,
 } from '../lib/share'
-import type { GraderResult, GraderState } from '../types'
+import { captureGraderShare } from '../lib/posthog'
+import type { CohortId, GraderResult, GraderState } from '../types'
 
 interface ShareBarProps {
   state: GraderState
@@ -30,12 +31,21 @@ export function ShareBar({ state, result, onDownload, downloading }: ShareBarPro
   }
 
   const handleCopyLink = async () => {
-    if (await copyToClipboard(shareUrl)) showFeedback('link')
+    if (await copyToClipboard(shareUrl)) {
+      captureGraderShare('copy_link', result, state.cohort as CohortId)
+      showFeedback('link')
+    }
   }
 
   const handleLinkedIn = async () => {
+    captureGraderShare('linkedin', result, state.cohort as CohortId)
     const copied = await shareToLinkedIn(shareUrl, shareText)
     if (copied) showFeedback('linkedin')
+  }
+
+  const handleDownload = () => {
+    captureGraderShare('download_image', result, state.cohort as CohortId)
+    onDownload()
   }
 
   return (
@@ -54,7 +64,10 @@ export function ShareBar({ state, result, onDownload, downloading }: ShareBarPro
 
       <button
         type="button"
-        onClick={() => shareToX(shareText, shareUrl)}
+        onClick={() => {
+          captureGraderShare('x', result, state.cohort as CohortId)
+          shareToX(shareText, shareUrl)
+        }}
         className="w-full rounded-xl bg-ink px-5 py-4 text-base font-semibold text-bg transition-all hover:bg-islo"
       >
         Post your Grade {result.grade} on X →
@@ -79,7 +92,7 @@ export function ShareBar({ state, result, onDownload, downloading }: ShareBarPro
 
       <button
         type="button"
-        onClick={onDownload}
+        onClick={handleDownload}
         disabled={downloading}
         className="mt-3 w-full py-1 text-sm text-ink-4 transition-colors hover:text-ink disabled:opacity-50"
       >

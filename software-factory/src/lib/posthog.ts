@@ -1,9 +1,11 @@
 import posthog from 'posthog-js'
 import { POSTHOG_HOST, POSTHOG_KEY } from '../config/posthog'
 import type { LeadPayload, ResultPayload } from './leads'
-import type { Stage } from '../types'
+import type { CohortId, GraderResult, Stage } from '../types'
 
 let initialized = false
+
+export type GraderShareChannel = 'x' | 'linkedin' | 'copy_link' | 'download_image'
 
 function getReferrerProps() {
   const referrer = document.referrer
@@ -101,4 +103,20 @@ export function captureGraderLead(payload: LeadPayload): boolean {
   })
 
   return true
+}
+
+export function captureGraderShare(
+  channel: GraderShareChannel,
+  result: GraderResult,
+  cohort: CohortId,
+): void {
+  if (!initialized) return
+
+  posthog.capture('grader_share_clicked', {
+    channel,
+    cohort,
+    grade: result.grade,
+    overall_score: result.overallScore,
+    percentile: result.percentile,
+  })
 }
