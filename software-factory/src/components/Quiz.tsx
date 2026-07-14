@@ -42,11 +42,15 @@ export function Quiz({
   const handleSelect = useCallback(
     (optionId: string) => {
       onAnswer(question.id, optionId)
-      if (!isLast) {
-        setTimeout(() => onIndexChange(currentIndex + 1), 280)
-      }
+      setTimeout(() => {
+        if (isLast) {
+          onComplete()
+        } else {
+          onIndexChange(currentIndex + 1)
+        }
+      }, 280)
     },
-    [currentIndex, isLast, onAnswer, onIndexChange, question.id],
+    [currentIndex, isLast, onAnswer, onComplete, onIndexChange, question.id],
   )
 
   useEffect(() => {
@@ -119,16 +123,9 @@ export function Quiz({
         </button>
 
         {isLast && (
-          <motion.button
-            type="button"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: hasAnswer ? 1 : 0.4, scale: 1 }}
-            onClick={goNext}
-            disabled={!hasAnswer}
-            className="rounded-[9px] bg-ink px-[18px] py-[11px] text-sm font-medium tracking-[-0.005em] text-bg transition-all hover:bg-islo disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            See my results →
-          </motion.button>
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-4">
+            Pick an answer to see your results
+          </span>
         )}
       </div>
     </div>

@@ -11,9 +11,10 @@ export const DIMENSIONS: DimensionMeta[] = [
   { id: 'governanceAndCost', label: 'Governance & Cost Control', shortLabel: 'Controls', category: 'agentic', weight: 1 },
 ]
 
-// Non-linear maturity scale: floor at 65, ceiling at 97.
-// Reflects that even early-stage teams score above zero on most dimensions.
-const MATURITY_OPTION_SCORES = [65, 76, 84, 92, 97] as const
+// Non-linear maturity scale spanning 40–98. A meaningful floor keeps early teams
+// from bottoming out at zero, while the wider spread lets the top separate from
+// the pack so the highest grades and maturity levels stay genuinely earned.
+const MATURITY_OPTION_SCORES = [40, 58, 72, 86, 98] as const
 
 const maturityOptions = (labels: [string, string, string, string, string]) =>
   labels.map((label, index) => ({

@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import {
-  buildShareMessage,
   buildShareText,
   buildShareUrl,
   copyToClipboard,
@@ -17,22 +16,17 @@ interface ShareBarProps {
   downloading: boolean
 }
 
-type CopyFeedback = 'message' | 'link' | 'linkedin' | null
+type CopyFeedback = 'link' | 'linkedin' | null
 
 export function ShareBar({ state, result, onDownload, downloading }: ShareBarProps) {
   const [feedback, setFeedback] = useState<CopyFeedback>(null)
 
   const shareUrl = buildShareUrl(state, result)
   const shareText = buildShareText(result)
-  const shareMessage = buildShareMessage(result, state)
 
   const showFeedback = (kind: CopyFeedback) => {
     setFeedback(kind)
     setTimeout(() => setFeedback(null), 3000)
-  }
-
-  const handleCopyMessage = async () => {
-    if (await copyToClipboard(shareMessage)) showFeedback('message')
   }
 
   const handleCopyLink = async () => {
@@ -51,64 +45,46 @@ export function ShareBar({ state, result, onDownload, downloading }: ShareBarPro
       transition={{ delay: 0.15 }}
       className="rounded-2xl border border-line-2 bg-paper p-6 shadow-[0_1px_#00000005,0_12px_40px_-28px_#00000040]"
     >
-      <h3 className="mb-1 text-sm font-semibold text-ink">Share your result</h3>
-      <p className="mb-4 text-sm text-ink-4">
-        Challenge your peers — how does their team compare?
+      <h3 className="text-center text-base font-semibold text-ink">
+        Challenge another team
+      </h3>
+      <p className="mx-auto mb-4 mt-1 max-w-xs text-center text-sm text-ink-4">
+        Challenge a VP R&amp;D, CTO, or another engineering team to beat your grade.
       </p>
 
-      <div className="mb-5 rounded-xl border border-line bg-bg-1 px-4 py-3">
-        <p className="text-sm leading-relaxed text-ink-3">{shareText}</p>
-        <p className="mt-2 truncate font-mono text-[11px] text-ink-4">{shareUrl}</p>
-      </div>
+      <button
+        type="button"
+        onClick={() => shareToX(shareText, shareUrl)}
+        className="w-full rounded-xl bg-ink px-5 py-4 text-base font-semibold text-bg transition-all hover:bg-islo"
+      >
+        Post your Grade {result.grade} on X →
+      </button>
 
-      {feedback === 'linkedin' && (
-        <p className="mb-4 text-sm text-islo-deep">
-          Message copied. Paste it into your LinkedIn post (⌘V).
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleCopyMessage}
-          className="rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-bg transition-all hover:bg-islo"
-        >
-          {feedback === 'message' ? '✓ Copied!' : 'Copy message'}
-        </button>
-
+      <div className="mt-3 grid grid-cols-2 gap-3">
         <button
           type="button"
           onClick={handleLinkedIn}
-          className="rounded-lg border border-line-2 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-bg-1"
+          className="rounded-xl border border-line-2 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-bg-1"
         >
-          LinkedIn
+          {feedback === 'linkedin' ? '✓ Copied — paste it' : 'Post on LinkedIn'}
         </button>
-
-        <button
-          type="button"
-          onClick={() => shareToX(shareText, shareUrl)}
-          className="rounded-lg border border-line-2 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-bg-1"
-        >
-          X / Twitter
-        </button>
-
         <button
           type="button"
           onClick={handleCopyLink}
-          className="rounded-lg border border-line-2 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-bg-1"
+          className="rounded-xl border border-line-2 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-bg-1"
         >
           {feedback === 'link' ? '✓ Copied!' : 'Copy link'}
         </button>
-
-        <button
-          type="button"
-          onClick={onDownload}
-          disabled={downloading}
-          className="rounded-lg border border-line-2 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-bg-1 disabled:opacity-50"
-        >
-          {downloading ? 'Generating…' : 'Download card'}
-        </button>
       </div>
+
+      <button
+        type="button"
+        onClick={onDownload}
+        disabled={downloading}
+        className="mt-3 w-full py-1 text-sm text-ink-4 transition-colors hover:text-ink disabled:opacity-50"
+      >
+        {downloading ? 'Generating…' : 'Download result image'}
+      </button>
     </motion.div>
   )
 }

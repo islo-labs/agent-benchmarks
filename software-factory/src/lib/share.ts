@@ -154,7 +154,7 @@ export function buildShareUrl(state: GraderState, result?: GraderResult): string
 }
 
 export function buildShareText(result: GraderResult): string {
-  return `Our team scored ${result.overallScore}/100 (Grade ${result.grade}) on AI-driven software factory maturity. Level ${result.maturityLevel}: ${result.maturityLabel}. ${formatPercentileRank(result.percentile)} vs ${TRUST_STATS.orgCount} benchmarked teams. How does your process compare?`
+  return `We just graded ${result.grade} (${result.overallScore}/100) on AI software factory maturity. ${formatPercentileRank(result.percentile)} of ${TRUST_STATS.orgCount} engineering teams. Think your team can beat it?`
 }
 
 export function buildShareMessage(result: GraderResult, state: GraderState): string {

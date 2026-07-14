@@ -1,8 +1,38 @@
 import posthog from 'posthog-js'
 import { POSTHOG_HOST, POSTHOG_KEY } from '../config/posthog'
 import type { LeadPayload, ResultPayload } from './leads'
+import type { Stage } from '../types'
 
 let initialized = false
+
+function getReferrerProps() {
+  const referrer = document.referrer
+  if (!referrer) {
+    return { referrer: '', referring_domain: '' }
+  }
+
+  try {
+    return {
+      referrer,
+      referring_domain: new URL(referrer).hostname,
+    }
+  } catch {
+    return { referrer, referring_domain: '' }
+  }
+}
+
+function getUtmProps() {
+  const params = new URLSearchParams(window.location.search)
+  const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const
+  const utm: Record<string, string> = {}
+
+  for (const key of utmKeys) {
+    const value = params.get(key)
+    if (value) utm[key] = value
+  }
+
+  return utm
+}
 
 export function initPostHog(): void {
   if (initialized) return
@@ -13,7 +43,28 @@ export function initPostHog(): void {
     capture_pageview: false,
     capture_pageleave: false,
   })
+
+  const utm = getUtmProps()
+  if (Object.keys(utm).length > 0) {
+    posthog.register(utm)
+  }
+
   initialized = true
+}
+
+export function captureGraderPageView(
+  stage: Stage,
+  extras?: Record<string, string | number | boolean>,
+): void {
+  if (!initialized) return
+
+  posthog.capture('$pageview', {
+    grader_stage: stage,
+    path: window.location.pathname + window.location.search,
+    ...getReferrerProps(),
+    ...getUtmProps(),
+    ...extras,
+  })
 }
 
 function resultProperties(payload: ResultPayload) {

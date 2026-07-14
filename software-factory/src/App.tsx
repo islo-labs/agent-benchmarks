@@ -4,6 +4,7 @@ import { Quiz } from './components/Quiz'
 import { Result } from './components/Result'
 import { GraderFooter } from './components/GraderFooter'
 import { trackResult } from './lib/leads'
+import { captureGraderPageView } from './lib/posthog'
 import { computeResult, isQuizComplete } from './lib/scoring'
 import { readStateFromUrl, updateShareMeta, updateUrlWithState } from './lib/share'
 import type { CohortId, GraderState, Stage } from './types'
@@ -35,6 +36,10 @@ export default function App() {
     () => (isQuizComplete(state.answers) ? computeResult(state.answers, state.cohort) : null),
     [state],
   )
+
+  useEffect(() => {
+    captureGraderPageView(stage)
+  }, [stage])
 
   useEffect(() => {
     if (Object.keys(state.answers).length > 0 || state.cohort !== DEFAULT_STATE.cohort) {
