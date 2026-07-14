@@ -8,7 +8,7 @@ frontend:
       commands:
         - npm run build --prefix software-factory
         - mkdir -p _site/software-factory
-        - cp software-factory/dist/. _site/software-factory/
+        - cp -r software-factory/dist/. _site/software-factory/
         - cp index.html landscape.html privacy.html favicon.svg _site/
   artifacts:
     baseDirectory: _site
