@@ -1,15 +1,14 @@
 import posthog from 'posthog-js'
+import { POSTHOG_HOST, POSTHOG_KEY } from '../config/posthog'
 import type { LeadPayload, ResultPayload } from './leads'
 
 let initialized = false
 
 export function initPostHog(): void {
-  const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined
-  const host = import.meta.env.VITE_POSTHOG_HOST as string | undefined
-  if (!key || initialized) return
+  if (initialized) return
 
-  posthog.init(key, {
-    api_host: host ?? 'https://us.i.posthog.com',
+  posthog.init(POSTHOG_KEY, {
+    api_host: POSTHOG_HOST,
     person_profiles: 'identified_only',
     capture_pageview: false,
     capture_pageleave: false,
