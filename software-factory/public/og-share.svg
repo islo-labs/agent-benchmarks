@@ -1,57 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
   <defs>
-    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(980 80) rotate(90) scale(320)">
-      <stop stop-color="#7A3DE6" stop-opacity="0.22"/>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(600 120) rotate(90) scale(420)">
+      <stop stop-color="#7A3DE6" stop-opacity="0.16"/>
       <stop offset="1" stop-color="#7A3DE6" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="card" x1="720" y1="120" x2="1080" y2="520" gradientUnits="userSpaceOnUse">
+    <linearGradient id="card-shine" x1="300" y1="70" x2="900" y2="560" gradientUnits="userSpaceOnUse">
       <stop stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#F8F4FE"/>
+      <stop offset="1" stop-color="#FCFAFF"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="630" fill="#FAFAFA"/>
+  <rect width="1200" height="630" fill="#F7F7F8"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
 
-  <!-- grid mark -->
-  <g transform="translate(88 88)">
-    <rect width="56" height="56" rx="12" fill="#7A3DE6"/>
-    <rect x="10" y="10" width="11" height="11" rx="2.5" fill="white" opacity="0.95"/>
-    <rect x="23" y="10" width="11" height="11" rx="2.5" fill="white" opacity="0.55"/>
-    <rect x="36" y="10" width="11" height="11" rx="2.5" fill="white" opacity="0.25"/>
-    <rect x="10" y="23" width="11" height="11" rx="2.5" fill="white" opacity="0.70"/>
-    <rect x="23" y="23" width="11" height="11" rx="2.5" fill="white" opacity="0.90"/>
-    <rect x="36" y="23" width="11" height="11" rx="2.5" fill="white" opacity="0.40"/>
-    <rect x="10" y="36" width="11" height="11" rx="2.5" fill="white" opacity="0.30"/>
-    <rect x="23" y="36" width="11" height="11" rx="2.5" fill="white" opacity="0.60"/>
-    <rect x="36" y="36" width="11" height="11" rx="2.5" fill="white" opacity="1.00"/>
-  </g>
+  <!-- result card -->
+  <rect x="252" y="52" width="696" height="476" rx="32" fill="url(#card-shine)" stroke="#E4E4E8" stroke-width="2"/>
+  <circle cx="860" cy="120" r="112" fill="#7A3DE6" fill-opacity="0.08"/>
 
-  <text x="168" y="124" fill="#7A3DE6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" font-weight="500" letter-spacing="2.2">SOFTWARE FACTORY GRADER</text>
+  <text x="300" y="112" fill="#7A3DE6" font-family="JetBrains Mono" font-size="20" font-weight="500" letter-spacing="1.6">SOFTWARE FACTORY GRADER</text>
+  <text x="300" y="144" fill="#8A8A95" font-family="Inter" font-size="22" font-weight="400">Benchmark your AI-driven software engineering maturity</text>
 
-  <text x="88" y="220" fill="#141418" font-family="ui-sans-serif, system-ui, sans-serif" font-size="58" font-weight="600" letter-spacing="-1.5">
-    <tspan x="88" dy="0">How AI-driven is your</tspan>
-    <tspan x="88" dy="68">software engineering?</tspan>
-  </text>
+  <text x="300" y="268" fill="#141418" font-family="Inter" font-size="148" font-weight="600" letter-spacing="-5">A</text>
+  <text x="430" y="228" fill="#141418" font-family="Inter" font-size="62" font-weight="600">94</text>
+  <text x="430" y="268" fill="#8A8A95" font-family="Inter" font-size="24" font-weight="400">out of 100</text>
 
-  <text x="88" y="390" fill="#555560" font-family="ui-sans-serif, system-ui, sans-serif" font-size="30" font-weight="400">
-    <tspan x="88" dy="0">9 questions · benchmark against 200+ teams</tspan>
-    <tspan x="88" dy="42">Grade your SDLC maturity and share your result</tspan>
-  </text>
+  <rect x="300" y="302" width="600" height="96" rx="20" fill="#F3EBFD" stroke="#E8D9FA" stroke-width="1"/>
+  <text x="324" y="336" fill="#8A8A95" font-family="JetBrains Mono" font-size="16" font-weight="500" letter-spacing="1.2">MATURITY LEVEL</text>
+  <text x="324" y="374" fill="#4E1A9C" font-family="Inter" font-size="30" font-weight="600">Level 4: AI-Driven Software Factory</text>
 
-  <text x="88" y="560" fill="#8A8A95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22">agent-benchmarks.com/software-factory</text>
+  <text x="300" y="446" fill="#555560" font-family="Inter" font-size="24" font-weight="400">95th percentile vs startup peers</text>
 
-  <!-- preview card -->
-  <rect x="700" y="118" width="392" height="394" rx="28" fill="url(#card)" stroke="rgba(20,20,24,0.12)" stroke-width="2"/>
-  <text x="736" y="168" fill="#7A3DE6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" letter-spacing="1.4">YOUR RESULT</text>
+  <!-- dimension chips -->
+  <rect x="300" y="474" width="138" height="54" rx="12" fill="#F4F4F5"/>
+  <text x="369" y="502" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">87</text>
+  <text x="369" y="522" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Autonomy</text>
 
-  <text x="736" y="286" fill="#141418" font-family="ui-sans-serif, system-ui, sans-serif" font-size="132" font-weight="600" letter-spacing="-4">A</text>
-  <text x="860" y="248" fill="#141418" font-family="ui-sans-serif, system-ui, sans-serif" font-size="54" font-weight="600">94</text>
-  <text x="860" y="286" fill="#8A8A95" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22">out of 100</text>
+  <rect x="454" y="474" width="138" height="54" rx="12" fill="#F4F4F5"/>
+  <text x="523" y="502" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">84</text>
+  <text x="523" y="522" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Context</text>
 
-  <rect x="736" y="318" width="320" height="88" rx="18" fill="#F3EBFD" stroke="rgba(20,20,24,0.06)"/>
-  <text x="756" y="352" fill="#8A8A95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="1.2">MATURITY LEVEL</text>
-  <text x="756" y="386" fill="#4E1A9C" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="600">L4: AI-Driven Software Factory</text>
+  <rect x="608" y="474" width="138" height="54" rx="12" fill="#F4F4F5"/>
+  <text x="677" y="502" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">84</text>
+  <text x="677" y="522" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Verify</text>
 
-  <text x="736" y="468" fill="#555560" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22">95th percentile vs startup peers</text>
+  <rect x="762" y="474" width="138" height="54" rx="12" fill="#F4F4F5"/>
+  <text x="831" y="502" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">84</text>
+  <text x="831" y="522" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Controls</text>
+
+  <text x="600" y="592" fill="#8A8A95" font-family="JetBrains Mono" font-size="20" font-weight="500" text-anchor="middle">agent-benchmarks.com/software-factory</text>
 </svg>
