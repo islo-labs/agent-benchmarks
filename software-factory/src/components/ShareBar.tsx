@@ -22,7 +22,7 @@ type CopyFeedback = 'message' | 'link' | 'linkedin' | null
 export function ShareBar({ state, result, onDownload, downloading }: ShareBarProps) {
   const [feedback, setFeedback] = useState<CopyFeedback>(null)
 
-  const shareUrl = buildShareUrl(state)
+  const shareUrl = buildShareUrl(state, result)
   const shareText = buildShareText(result)
   const shareMessage = buildShareMessage(result, state)
 

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(600 120) rotate(90) scale(420)">
+      <stop stop-color="#7A3DE6" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#7A3DE6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="card-shine" x1="300" y1="70" x2="900" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FCFAFF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#F7F7F8"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- result card -->
+  <rect x="252" y="52" width="696" height="476" rx="32" fill="url(#card-shine)" stroke="#E4E4E8" stroke-width="2"/>
+  <circle cx="860" cy="120" r="112" fill="#7A3DE6" fill-opacity="0.08"/>
+
+  <text x="300" y="112" fill="#7A3DE6" font-family="JetBrains Mono" font-size="20" font-weight="500" letter-spacing="1.6">SOFTWARE FACTORY GRADER</text>
+  <text x="300" y="144" fill="#8A8A95" font-family="Inter" font-size="22" font-weight="400">Benchmark your AI-driven software engineering maturity</text>
+
+  <text x="300" y="268" fill="#141418" font-family="Inter" font-size="148" font-weight="600" letter-spacing="-5">A</text>
+  <text x="430" y="228" fill="#141418" font-family="Inter" font-size="62" font-weight="600">94</text>
+  <text x="430" y="268" fill="#8A8A95" font-family="Inter" font-size="24" font-weight="400">out of 100</text>
+
+  <rect x="300" y="302" width="600" height="96" rx="20" fill="#F3EBFD" stroke="#E8D9FA" stroke-width="1"/>
+  <text x="324" y="336" fill="#8A8A95" font-family="JetBrains Mono" font-size="16" font-weight="500" letter-spacing="1.2">MATURITY LEVEL</text>
+  <text x="324" y="374" fill="#4E1A9C" font-family="Inter" font-size="30" font-weight="600">Level 4: AI-Driven Software Factory</text>
+
+  <text x="300" y="438" fill="#555560" font-family="Inter" font-size="24" font-weight="400">95th percentile vs startup peers</text>
+
+  <!-- dimension chips -->
+  <rect x="300" y="456" width="138" height="52" rx="12" fill="#F4F4F5"/>
+  <text x="369" y="483" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">87</text>
+  <text x="369" y="502" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Autonomy</text>
+
+  <rect x="454" y="456" width="138" height="52" rx="12" fill="#F4F4F5"/>
+  <text x="523" y="483" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">84</text>
+  <text x="523" y="502" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Context</text>
+
+  <rect x="608" y="456" width="138" height="52" rx="12" fill="#F4F4F5"/>
+  <text x="677" y="483" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">84</text>
+  <text x="677" y="502" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Verify</text>
+
+  <rect x="762" y="456" width="138" height="52" rx="12" fill="#F4F4F5"/>
+  <text x="831" y="483" fill="#141418" font-family="JetBrains Mono" font-size="22" font-weight="500" text-anchor="middle">84</text>
+  <text x="831" y="502" fill="#8A8A95" font-family="Inter" font-size="14" font-weight="400" text-anchor="middle">Controls</text>
+
+  <text x="600" y="592" fill="#8A8A95" font-family="JetBrains Mono" font-size="20" font-weight="500" text-anchor="middle">agent-benchmarks.com/software-factory</text>
+</svg>

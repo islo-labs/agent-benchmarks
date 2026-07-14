@@ -38,9 +38,9 @@ export default function App() {
 
   useEffect(() => {
     if (Object.keys(state.answers).length > 0 || state.cohort !== DEFAULT_STATE.cohort) {
-      updateUrlWithState(state)
+      updateUrlWithState(state, stage === 'result' ? result ?? undefined : undefined)
     }
-  }, [state])
+  }, [state, stage, result])
 
   useEffect(() => {
     if (stage === 'result' && result) {

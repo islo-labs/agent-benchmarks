@@ -25,7 +25,7 @@ export function buildResultPayload(state: GraderState, result: GraderResult): Re
   return {
     submittedAt: new Date().toISOString(),
     cohort: state.cohort,
-    shareUrl: buildShareUrl(state),
+    shareUrl: buildShareUrl(state, result),
     answers: state.answers,
     overallScore: result.overallScore,
     grade: result.grade,
