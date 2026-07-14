@@ -18,19 +18,19 @@ const MATURITY_LEVELS = [
     level: 2,
     label: 'Agent-Enabled',
     description: 'Agents complete scoped tasks with reusable tools and close human review.',
-    minScore: 25,
+    minScore: 40,
   },
   {
     level: 3,
     label: 'Agent-Operated',
     description: 'Agents run repeatable workflows with dedicated harnesses, evidence, and controls.',
-    minScore: 50,
+    minScore: 55,
   },
   {
     level: 4,
     label: 'AI-Driven Software Factory',
     description: 'Agents run with harnesses, full observability, and verified output at scale.',
-    minScore: 75,
+    minScore: 70,
   },
 ]
 
@@ -70,10 +70,10 @@ const RECOMMENDATIONS: Record<DimensionId, string[]> = {
 }
 
 function scoreToGrade(score: number): string {
-  if (score >= 90) return 'A'
-  if (score >= 80) return 'B'
-  if (score >= 70) return 'C'
-  if (score >= 60) return 'D'
+  if (score >= 88) return 'A'
+  if (score >= 76) return 'B'
+  if (score >= 64) return 'C'
+  if (score >= 52) return 'D'
   return 'F'
 }
 
