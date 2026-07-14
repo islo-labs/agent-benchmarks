@@ -1,0 +1,16 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd software-factory && npm ci
+    build:
+      commands:
+        - cd software-factory && npm run build
+        - mkdir -p _site/software-factory
+        - cp software-factory/dist/. _site/software-factory/
+        - cp index.html landscape.html privacy.html favicon.svg _site/
+  artifacts:
+    baseDirectory: _site
+    files:
+      - '**/*'
