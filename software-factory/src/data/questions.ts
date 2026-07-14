@@ -11,11 +11,15 @@ export const DIMENSIONS: DimensionMeta[] = [
   { id: 'governanceAndCost', label: 'Governance & Cost Control', shortLabel: 'Controls', category: 'agentic', weight: 1 },
 ]
 
+// Generous scale so typical teams land in shareable B/C territory
+// while top answers still leave headroom below a perfect 100.
+const MATURITY_OPTION_SCORES = [65, 76, 84, 92, 97] as const
+
 const maturityOptions = (labels: [string, string, string, string, string]) =>
   labels.map((label, index) => ({
     id: `opt-${index}`,
     label,
-    score: index,
+    score: MATURITY_OPTION_SCORES[index],
   }))
 
 function maturityQuestion(
