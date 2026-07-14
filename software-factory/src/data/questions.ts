@@ -11,8 +11,8 @@ export const DIMENSIONS: DimensionMeta[] = [
   { id: 'governanceAndCost', label: 'Governance & Cost Control', shortLabel: 'Controls', category: 'agentic', weight: 1 },
 ]
 
-// Generous scale so typical teams land in shareable B/C territory
-// while top answers still leave headroom below a perfect 100.
+// Non-linear maturity scale: floor at 65, ceiling at 97.
+// Reflects that even early-stage teams score above zero on most dimensions.
 const MATURITY_OPTION_SCORES = [65, 76, 84, 92, 97] as const
 
 const maturityOptions = (labels: [string, string, string, string, string]) =>
