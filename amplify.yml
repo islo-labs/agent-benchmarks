@@ -3,10 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - cd software-factory && npm ci
+        - npm ci --prefix software-factory
     build:
       commands:
-        - cd software-factory && npm run build
+        - npm run build --prefix software-factory
         - mkdir -p _site/software-factory
         - cp software-factory/dist/. _site/software-factory/
         - cp index.html landscape.html privacy.html favicon.svg _site/
