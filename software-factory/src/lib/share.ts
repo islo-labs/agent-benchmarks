@@ -5,6 +5,13 @@ import { TRUST_STATS } from '../data/trust'
 const LEGACY_PARAM = 'r'
 const COHORT_PARAM = 'c'
 const ANSWERS_PARAM = 'a'
+const GRADE_PARAM = 'g'
+const SCORE_PARAM = 's'
+const MATURITY_LEVEL_PARAM = 'ml'
+const MATURITY_LABEL_PARAM = 'mlb'
+const PERCENTILE_PARAM = 'p'
+
+export const SHARE_OG_IMAGE = 'https://agent-benchmarks.com/software-factory/og-share.png'
 
 const COHORT_SHORT: Record<CohortId, string> = {
   startup: 'u',
@@ -98,20 +105,33 @@ function decodeLegacyState(encoded: string): GraderState | null {
   }
 }
 
-function applyStateToUrl(url: URL, state: GraderState): void {
+function applyStateToUrl(url: URL, state: GraderState, result?: GraderResult): void {
   url.searchParams.delete(LEGACY_PARAM)
   url.searchParams.delete(COHORT_PARAM)
   url.searchParams.delete(ANSWERS_PARAM)
+  url.searchParams.delete(GRADE_PARAM)
+  url.searchParams.delete(SCORE_PARAM)
+  url.searchParams.delete(MATURITY_LEVEL_PARAM)
+  url.searchParams.delete(MATURITY_LABEL_PARAM)
+  url.searchParams.delete(PERCENTILE_PARAM)
 
   const compact = encodeCompactParams(state)
   for (const [key, value] of compact.entries()) {
     url.searchParams.set(key, value)
   }
+
+  if (result) {
+    url.searchParams.set(GRADE_PARAM, result.grade)
+    url.searchParams.set(SCORE_PARAM, String(result.overallScore))
+    url.searchParams.set(MATURITY_LEVEL_PARAM, String(result.maturityLevel))
+    url.searchParams.set(MATURITY_LABEL_PARAM, encodeURIComponent(result.maturityLabel))
+    url.searchParams.set(PERCENTILE_PARAM, String(result.percentile))
+  }
 }
 
-export function updateUrlWithState(state: GraderState): void {
+export function updateUrlWithState(state: GraderState, result?: GraderResult): void {
   const url = new URL(window.location.href)
-  applyStateToUrl(url, state)
+  applyStateToUrl(url, state, result)
   window.history.replaceState(null, '', url.toString())
 }
 
@@ -127,9 +147,9 @@ export function readStateFromUrl(): GraderState | null {
   return null
 }
 
-export function buildShareUrl(state: GraderState): string {
+export function buildShareUrl(state: GraderState, result?: GraderResult): string {
   const url = new URL(`${getPublicBaseUrl()}/`)
-  applyStateToUrl(url, state)
+  applyStateToUrl(url, state, result)
   return url.toString()
 }
 
@@ -138,7 +158,7 @@ export function buildShareText(result: GraderResult): string {
 }
 
 export function buildShareMessage(result: GraderResult, state: GraderState): string {
-  return `${buildShareText(result)}\n\n${buildShareUrl(state)}`
+  return `${buildShareText(result)}\n\n${buildShareUrl(state, result)}`
 }
 
 export async function shareToLinkedIn(url: string, text: string): Promise<boolean> {
@@ -161,20 +181,24 @@ export function updateShareMeta(result: GraderResult): void {
 
   document.title = title
 
-  const setMeta = (property: string, content: string) => {
-    let tag = document.querySelector(`meta[property="${property}"]`)
+  const setMeta = (attr: 'property' | 'name', key: string, content: string) => {
+    const selector = `meta[${attr}="${key}"]`
+    let tag = document.querySelector(selector)
     if (!tag) {
       tag = document.createElement('meta')
-      tag.setAttribute('property', property)
+      tag.setAttribute(attr, key)
       document.head.appendChild(tag)
     }
     tag.setAttribute('content', content)
   }
 
-  setMeta('og:title', title)
-  setMeta('og:description', description)
-  setMeta('twitter:title', title)
-  setMeta('twitter:description', description)
+  setMeta('property', 'og:title', title)
+  setMeta('property', 'og:description', description)
+  setMeta('property', 'og:image', SHARE_OG_IMAGE)
+  setMeta('name', 'twitter:card', 'summary_large_image')
+  setMeta('name', 'twitter:title', title)
+  setMeta('name', 'twitter:description', description)
+  setMeta('name', 'twitter:image', SHARE_OG_IMAGE)
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {

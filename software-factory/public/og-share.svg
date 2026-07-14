@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(980 80) rotate(90) scale(320)">
+      <stop stop-color="#7A3DE6" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#7A3DE6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="card" x1="720" y1="120" x2="1080" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F8F4FE"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#FAFAFA"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- grid mark -->
+  <g transform="translate(88 88)">
+    <rect width="56" height="56" rx="12" fill="#7A3DE6"/>
+    <rect x="10" y="10" width="11" height="11" rx="2.5" fill="white" opacity="0.95"/>
+    <rect x="23" y="10" width="11" height="11" rx="2.5" fill="white" opacity="0.55"/>
+    <rect x="36" y="10" width="11" height="11" rx="2.5" fill="white" opacity="0.25"/>
+    <rect x="10" y="23" width="11" height="11" rx="2.5" fill="white" opacity="0.70"/>
+    <rect x="23" y="23" width="11" height="11" rx="2.5" fill="white" opacity="0.90"/>
+    <rect x="36" y="23" width="11" height="11" rx="2.5" fill="white" opacity="0.40"/>
+    <rect x="10" y="36" width="11" height="11" rx="2.5" fill="white" opacity="0.30"/>
+    <rect x="23" y="36" width="11" height="11" rx="2.5" fill="white" opacity="0.60"/>
+    <rect x="36" y="36" width="11" height="11" rx="2.5" fill="white" opacity="1.00"/>
+  </g>
+
+  <text x="168" y="124" fill="#7A3DE6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" font-weight="500" letter-spacing="2.2">SOFTWARE FACTORY GRADER</text>
+
+  <text x="88" y="220" fill="#141418" font-family="ui-sans-serif, system-ui, sans-serif" font-size="58" font-weight="600" letter-spacing="-1.5">
+    <tspan x="88" dy="0">How AI-driven is your</tspan>
+    <tspan x="88" dy="68">software engineering?</tspan>
+  </text>
+
+  <text x="88" y="390" fill="#555560" font-family="ui-sans-serif, system-ui, sans-serif" font-size="30" font-weight="400">
+    <tspan x="88" dy="0">9 questions · benchmark against 200+ teams</tspan>
+    <tspan x="88" dy="42">Grade your SDLC maturity and share your result</tspan>
+  </text>
+
+  <text x="88" y="560" fill="#8A8A95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22">agent-benchmarks.com/software-factory</text>
+
+  <!-- preview card -->
+  <rect x="700" y="118" width="392" height="394" rx="28" fill="url(#card)" stroke="rgba(20,20,24,0.12)" stroke-width="2"/>
+  <text x="736" y="168" fill="#7A3DE6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" letter-spacing="1.4">YOUR RESULT</text>
+
+  <text x="736" y="286" fill="#141418" font-family="ui-sans-serif, system-ui, sans-serif" font-size="132" font-weight="600" letter-spacing="-4">A</text>
+  <text x="860" y="248" fill="#141418" font-family="ui-sans-serif, system-ui, sans-serif" font-size="54" font-weight="600">94</text>
+  <text x="860" y="286" fill="#8A8A95" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22">out of 100</text>
+
+  <rect x="736" y="318" width="320" height="88" rx="18" fill="#F3EBFD" stroke="rgba(20,20,24,0.06)"/>
+  <text x="756" y="352" fill="#8A8A95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="1.2">MATURITY LEVEL</text>
+  <text x="756" y="386" fill="#4E1A9C" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="600">L4: AI-Driven Software Factory</text>
+
+  <text x="736" y="468" fill="#555560" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22">95th percentile vs startup peers</text>
+</svg>
